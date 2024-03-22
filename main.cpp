@@ -46,6 +46,17 @@ public:
         }
     }
 
+// Added move method that swaps the positions between two items
+    void move(int row1, int col1, int row2, int col2) {
+        if(row1 < rows && col1 < cols && row2 < rows && col2 < cols) {
+            Item* temp = grid[row1][col1];
+            grid[row1][col1] = grid[row2][col2];
+            grid[row2][col2] = temp;
+        }
+        else {
+            cout << "Invalid values entered" << endl;
+        }
+    }
 };
 
 class Player {
@@ -101,6 +112,10 @@ public:
     void showEq() {
         eq->display();
     }
+// Added moveItem method that inherits from the equipment move method
+    void moveItem(int row1, int col1, int row2, int col2) {
+        eq->move(row1, col1, row2, col2);
+    }
     void displayPlayerStats() {
         cout << "HP: " << HP << endl;
         cout << (mainHand != nullptr ? mainHand->name : "Fist") << endl;
@@ -133,6 +148,8 @@ int main()
     P.setMainArmor(2, 3);
     P.setMainPants(2, 0);
     P.setMainBoots(4, 4);
+    P.displayPlayerStats();
+    P.moveItem(4, 4, 2, 0);
     P.displayPlayerStats();
     return 0;
 }

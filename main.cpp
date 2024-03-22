@@ -1,10 +1,12 @@
 #include <iostream>
 #include <string>
+#include <map>
 using namespace std;
 
 class Item {
 public:
     string name;
+    map<string, string> details;
     Item(string name) : name{name} {}
 };
 
@@ -40,13 +42,13 @@ public:
     void display() {
         for(int i = 0; i < rows; i++) {
             for(int j = 0; j < cols; j++) {
-                cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "]\t";
+                cout << "[ " << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << " ]\t";
             }
             cout << endl;
         }
     }
-
-// Added move method that swaps the positions between two items
+    
+    // Added move method that swaps the positions between two items
     void move(int row1, int col1, int row2, int col2) {
         if(row1 < rows && col1 < cols && row2 < rows && col2 < cols) {
             Item* temp = grid[row1][col1];
@@ -55,6 +57,12 @@ public:
         }
         else {
             cout << "Invalid values entered" << endl;
+        }
+    }
+    void showDetails(int row, int col) {
+        Item* ;
+        for(map<string, int>::iterator i = details.begin(); i < details.end(); i++) {
+            cout << i->first << ": " << i->second << endl;
         }
     }
 };
@@ -112,7 +120,7 @@ public:
     void showEq() {
         eq->display();
     }
-// Added moveItem method that inherits from the equipment move method
+    // Added moveItem method that inherits from the equipment move method
     void moveItem(int row1, int col1, int row2, int col2) {
         eq->move(row1, col1, row2, col2);
     }

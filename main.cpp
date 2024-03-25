@@ -1,73 +1,139 @@
 #include <iostream>
 #include <string>
-#include <map>
 using namespace std;
+
+// Enumeration for item types
+enum class ItemType {
+    DEFAULT,
+    SUPPORT,
+    WEAPON,
+    HELMET,
+    ARMOR,
+    PANTS,
+    BOOTS
+};
 
 class Item {
 public:
     string name;
-    map<string, string> details;
-    Item(string name) : name{name} {}
+    int durability;
+    string description;
+    int attack; // For weapons
+    int resistance; // For armor
+    ItemType type;
+
+    // Constructor
+    Item(string name, ItemType type, int durability = 100, int attack = 0, int resistance = 0, string description = "No description") 
+        : name{name}, type{type}, durability{durability}, description{description}, attack{attack}, resistance{resistance} {}
 };
 
-class Equipment {
+class Equipment 
+{
     int rows;
     int cols;
 public:
     Item*** grid;
-    Equipment(int rows = 5, int cols = 5) : rows{rows}, cols{cols} {
+    Equipment(int rows = 5, int cols = 5) : rows{rows}, cols{cols} 
+    {
         grid = new Item**[rows];
-        for(int i = 0; i < rows; i++) {
+        for(int i = 0; i < rows; i++) 
+        {
             grid[i] = new Item*[cols];
         }
         int count = 0;
-        for(int i = 0; i < rows; i++) {
-            for(int j = 0; j < cols; j++) {
-                grid[i][j] = new Item("item " + to_string(count));
+        for(int i = 0; i < rows; i++) 
+        {
+            for(int j = 0; j < cols; j++) 
+            {
+                grid[i][j] = new Item("item" + to_string(count), ItemType::DEFAULT);
                 count++;
             }
         }
     }
-    ~Equipment() {
-        for(int i = 0; i < rows; i++) {
-            for(int j = 0; j < cols; j++) {
+    ~Equipment() 
+    {
+        for(int i = 0; i < rows; i++) 
+        {
+            for(int j = 0; j < cols; j++) 
+            {
                 delete grid[i][j];
             }
         }
-        for(int j = 0; j < rows; j++) {
+        for(int j = 0; j < rows; j++) 
+        {
             delete[] grid[j];
         }
         delete[] grid;
     }
-    void display() {
-        for(int i = 0; i < rows; i++) {
-            for(int j = 0; j < cols; j++) {
-                cout << "[ " << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << " ]\t";
+    void display() 
+    {
+        for(int i = 0; i < rows; i++) 
+        {
+            for(int j = 0; j < cols; j++) 
+            {
+                cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none\t") << "]\t";
             }
             cout << endl;
         }
     }
-    
-    // Added move method that swaps the positions between two items
-    void move(int row1, int col1, int row2, int col2) {
-        if(row1 < rows && col1 < cols && row2 < rows && col2 < cols) {
+    void move(int row1, int col1, int row2, int col2) 
+    {
+        if(row1 < rows && col1 < cols && row2 < rows && col2 < cols) 
+        {
             Item* temp = grid[row1][col1];
             grid[row1][col1] = grid[row2][col2];
             grid[row2][col2] = temp;
         }
-        else {
+        else 
+        {
             cout << "Invalid values entered" << endl;
         }
     }
-    void showDetails(int row, int col) {
-        Item* ;
-        for(map<string, int>::iterator i = details.begin(); i < details.end(); i++) {
-            cout << i->first << ": " << i->second << endl;
+    void showDetails(int row, int col) 
+{
+    if (row < rows && col < cols && grid[row][col] != nullptr) 
+    {
+        Item* item = grid[row][col];
+        cout << "Item Name: " << item->name << endl;
+        cout << "Durability: " << item->durability << endl;
+        cout << "Description: " << item->description << endl;
+        cout << "Type: ";
+        switch (item->type) 
+        {
+            case ItemType::SUPPORT: cout << "Support"; 
+            break;
+            case ItemType::WEAPON: cout << "Weapon"; 
+            break;
+            case ItemType::HELMET: cout << "Helmet"; 
+            break;
+            case ItemType::ARMOR: cout << "Armor"; 
+            break;
+            case ItemType::PANTS: cout << "Pants"; 
+            break;
+            case ItemType::BOOTS: cout << "Boots"; 
+            break;
+            default: cout << "Unknown"; break;
         }
+        cout << endl;
+        if (item->type == ItemType::WEAPON) 
+        {
+            cout << "Attack: " << item->attack << endl;
+        } 
+        else if (item->type == ItemType::ARMOR) 
+        {
+            cout << "Resistance: " << item->resistance << endl;
+        }
+    } 
+    else 
+    {
+        cout << "Invalid position or no item found." << endl;
     }
+}
+
 };
 
-class Player {
+class Player 
+{
     int HP;
     Item* mainHand;
     Item* sword;
@@ -77,7 +143,8 @@ class Player {
     Item* boots;
     Equipment* eq;
 public:
-    Player() {
+    Player() 
+    {
         HP = 100;
         mainHand = nullptr;
         sword = nullptr;
@@ -87,44 +154,52 @@ public:
         boots = nullptr;
         eq = new Equipment();
     }
-    void setMainWeapon(int i, int j) {
+    void setMainWeapon(int i, int j) 
+    {
         Item* temp = mainHand;
         mainHand = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
-    void setMainSword(int i, int j) {
+    void setMainSword(int i, int j) 
+    {
         Item* temp = sword;
         sword = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
-    void setMainHelmet(int i, int j) {
+    void setMainHelmet(int i, int j) 
+    {
         Item* temp = helmet;
         helmet = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
-    void setMainArmor(int i, int j) {
+    void setMainArmor(int i, int j) 
+    {
         Item* temp = armor;
         armor = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
-    void setMainPants(int i, int j) {
+    void setMainPants(int i, int j) 
+    {
         Item* temp = pants;
         pants = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
-    void setMainBoots(int i, int j) {
+    void setMainBoots(int i, int j) 
+    {
         Item* temp = boots;
         boots = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
-    void showEq() {
+    void showEq() 
+    {
         eq->display();
     }
-    // Added moveItem method that inherits from the equipment move method
-    void moveItem(int row1, int col1, int row2, int col2) {
+    void moveItem(int row1, int col1, int row2, int col2) 
+    {
         eq->move(row1, col1, row2, col2);
     }
-    void displayPlayerStats() {
+    void displayPlayerStats() 
+    {
         cout << "HP: " << HP << endl;
         cout << (mainHand != nullptr ? mainHand->name : "Fist") << endl;
         cout << (sword != nullptr ? sword->name : "Sword") << endl;
@@ -134,7 +209,12 @@ public:
         cout << (boots != nullptr ? boots->name : "Boots") << endl;
         eq->display();
     }
-    ~Player() {
+    void showDetails(int row, int col)
+    {
+        eq->showDetails(row, col);
+    }
+    ~Player() 
+    {
         delete eq;
     }
 };
@@ -159,5 +239,10 @@ int main()
     P.displayPlayerStats();
     P.moveItem(4, 4, 2, 0);
     P.displayPlayerStats();
+    P.showDetails(2, 0);
+    Item weapon("Sword", ItemType::WEAPON, 100, 20, 0, "Legendary sword"); // Weapon with specific durability, attack, and description
+    Item armor("Chainmail", ItemType::ARMOR, 200, 0, 30); // Armor with specific durability and resistance
+    Item potion("Health Potion", ItemType::SUPPORT); // Default item with default values
+
     return 0;
 }

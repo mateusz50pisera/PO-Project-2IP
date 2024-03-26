@@ -2,17 +2,6 @@
 #include <string>
 using namespace std;
 
-// Enumeration for item types
-enum class ItemType {
-    DEFAULT,
-    SUPPORT,
-    WEAPON,
-    HELMET,
-    ARMOR,
-    PANTS,
-    BOOTS
-};
-
 class Item {
 public:
     string name;
@@ -20,11 +9,64 @@ public:
     string description;
     int attack; // For weapons
     int resistance; // For armor
-    ItemType type;
+    string type; // Changed to string type
+    int price;
 
     // Constructor
-    Item(string name, ItemType type, int durability = 100, int attack = 0, int resistance = 0, string description = "No description") 
+    Item(string name, string type, int durability = 100, int attack = 0, int resistance = 0, string description = "No description") 
         : name{name}, type{type}, durability{durability}, description{description}, attack{attack}, resistance{resistance} {}
+};
+
+class Shop {
+    int rows;
+    int cols;
+public:
+    Item*** grid;
+    Shop(int rows = 5, int cols = 5) : rows{rows}, cols{cols} 
+    {
+        grid = new Item**[rows];
+        for(int i = 0; i < rows; i++) 
+        {
+            grid[i] = new Item*[cols];
+        }
+        int count = 0;
+        for(int i = 0; i < rows; i++) 
+        {
+            for(int j = 0; j < cols; j++) 
+            {
+                grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 100, 10, "Default item for sale");
+                count++;
+            }
+        }
+    }
+
+    void display() 
+    {
+        for(int i = 0; i < rows; i++) 
+        {
+            for(int j = 0; j < cols; j++) 
+            {
+                cout << "[" << grid[i][j]->name << ", $" << grid[i][j]->price << "]\t";
+            }
+            cout << endl;
+        }
+    }
+
+    ~Shop() 
+    {
+        for(int i = 0; i < rows; i++) 
+        {
+            for(int j = 0; j < cols; j++) 
+            {
+                delete grid[i][j];
+            }
+        }
+        for(int j = 0; j < rows; j++) 
+        {
+            delete[] grid[j];
+        }
+        delete[] grid;
+    }
 };
 
 class Equipment 
@@ -45,7 +87,7 @@ public:
         {
             for(int j = 0; j < cols; j++) 
             {
-                grid[i][j] = new Item("item" + to_string(count), ItemType::DEFAULT);
+                grid[i][j] = new Item("item" + to_string(count), "DEFAULT"); // Default type is "DEFAULT"
                 count++;
             }
         }
@@ -90,45 +132,28 @@ public:
         }
     }
     void showDetails(int row, int col) 
-{
-    if (row < rows && col < cols && grid[row][col] != nullptr) 
     {
-        Item* item = grid[row][col];
-        cout << "Item Name: " << item->name << endl;
-        cout << "Durability: " << item->durability << endl;
-        cout << "Description: " << item->description << endl;
-        cout << "Type: ";
-        switch (item->type) 
+        if (row < rows && col < cols && grid[row][col] != nullptr) 
         {
-            case ItemType::SUPPORT: cout << "Support"; 
-            break;
-            case ItemType::WEAPON: cout << "Weapon"; 
-            break;
-            case ItemType::HELMET: cout << "Helmet"; 
-            break;
-            case ItemType::ARMOR: cout << "Armor"; 
-            break;
-            case ItemType::PANTS: cout << "Pants"; 
-            break;
-            case ItemType::BOOTS: cout << "Boots"; 
-            break;
-            default: cout << "Unknown"; break;
-        }
-        cout << endl;
-        if (item->type == ItemType::WEAPON) 
-        {
-            cout << "Attack: " << item->attack << endl;
+            Item* item = grid[row][col];
+            cout << "Item Name: " << item->name << endl;
+            cout << "Durability: " << item->durability << endl;
+            cout << "Description: " << item->description << endl;
+            cout << "Type: " << item->type << endl;
+            if (item->type == "WEAPON") 
+            {
+                cout << "Attack: " << item->attack << endl;
+            } 
+            else if (item->type == "ARMOR") 
+            {
+                cout << "Resistance: " << item->resistance << endl;
+            }
         } 
-        else if (item->type == ItemType::ARMOR) 
+        else 
         {
-            cout << "Resistance: " << item->resistance << endl;
+            cout << "Invalid position or no item found." << endl;
         }
-    } 
-    else 
-    {
-        cout << "Invalid position or no item found." << endl;
     }
-}
 
 };
 
@@ -142,6 +167,7 @@ class Player
     Item* pants;
     Item* boots;
     Equipment* eq;
+    int gold;
 public:
     Player() 
     {
@@ -240,9 +266,11 @@ int main()
     P.moveItem(4, 4, 2, 0);
     P.displayPlayerStats();
     P.showDetails(2, 0);
-    Item weapon("Sword", ItemType::WEAPON, 100, 20, 0, "Legendary sword"); // Weapon with specific durability, attack, and description
-    Item armor("Chainmail", ItemType::ARMOR, 200, 0, 30); // Armor with specific durability and resistance
-    Item potion("Health Potion", ItemType::SUPPORT); // Default item with default values
+    Item weapon("Sword", "WEAPON", 100, 20, 0, "Legendary sword");
+    Item armor("Chainmail", "ARMOR", 200, 0, 30);
+    Item potion("Health Potion", "SUPPORT");
+    Shop shop;
+    shop.display();
 
     return 0;
 }

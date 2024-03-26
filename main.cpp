@@ -7,12 +7,11 @@ public:
     string name;
     int durability;
     string description;
-    int attack; // For weapons
-    int resistance; // For armor
-    string type; // Changed to string type
+    int attack;
+    int resistance;
+    string type;
     int price;
 
-    // Constructor
     Item(string name, string type, int durability = 100, int attack = 0, int resistance = 0, string description = "No description") 
         : name{name}, type{type}, durability{durability}, description{description}, attack{attack}, resistance{resistance} {}
 };
@@ -34,7 +33,7 @@ public:
         {
             for(int j = 0; j < cols; j++) 
             {
-                grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 100, 10, "Default item for sale");
+                grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 100, 10, 0, "Default item for sale");
                 count++;
             }
         }
@@ -87,7 +86,7 @@ public:
         {
             for(int j = 0; j < cols; j++) 
             {
-                grid[i][j] = new Item("item" + to_string(count), "DEFAULT"); // Default type is "DEFAULT"
+                grid[i][j] = new Item("item" + to_string(count), "DEFAULT");
                 count++;
             }
         }
@@ -113,7 +112,7 @@ public:
         {
             for(int j = 0; j < cols; j++) 
             {
-                cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none\t") << "]\t";
+                cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "\t]\t";
             }
             cout << endl;
         }
@@ -248,6 +247,7 @@ public:
 int main()
 {
     Player P;
+    Shop shop;
     P.showEq();
     P.displayPlayerStats();
     P.setMainWeapon(3, 4);
@@ -266,10 +266,6 @@ int main()
     P.moveItem(4, 4, 2, 0);
     P.displayPlayerStats();
     P.showDetails(2, 0);
-    Item weapon("Sword", "WEAPON", 100, 20, 0, "Legendary sword");
-    Item armor("Chainmail", "ARMOR", 200, 0, 30);
-    Item potion("Health Potion", "SUPPORT");
-    Shop shop;
     shop.display();
 
     return 0;

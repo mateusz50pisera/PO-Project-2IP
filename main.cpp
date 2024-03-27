@@ -1,10 +1,9 @@
 #include <iostream>
 #include <string>
-#include <vector>
-
 using namespace std;
 
-class Item {
+class Item
+{
 public:
     string name;
     int durability;
@@ -14,26 +13,27 @@ public:
     string type;
     int price;
 
-    Item(string name, string type, int durability = 100, int attack = 0, int resistance = 0, string description = "No description") 
+    Item(string name, string type, int durability = 100, int attack = 0, int resistance = 0, string details = "No details")
         : name{name}, type{type}, durability{durability}, details{details}, attack{attack}, resistance{resistance} {}
 };
 
-class Shop {
+class Shop
+{
     int rows;
     int cols;
 public:
     Item*** grid;
-    Shop(int rows = 5, int cols = 5) : rows{rows}, cols{cols} 
+    Shop(int rows = 5, int cols = 5) : rows{rows}, cols{cols}
     {
         grid = new Item**[rows];
-        for(int i = 0; i < rows; i++) 
+        for(int i = 0; i < rows; i++)
         {
             grid[i] = new Item*[cols];
         }
         int count = 0;
-        for(int i = 0; i < rows; i++) 
+        for(int i = 0; i < rows; i++)
         {
-            for(int j = 0; j < cols; j++) 
+            for(int j = 0; j < cols; j++)
             {
                 grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 100, 10, 0, "Default item for sale");
                 count++;
@@ -41,11 +41,11 @@ public:
         }
     }
 
-    void display() 
+    void display()
     {
-        for(int i = 0; i < rows; i++) 
+        for(int i = 0; i < rows; i++)
         {
-            for(int j = 0; j < cols; j++) 
+            for(int j = 0; j < cols; j++)
             {
                 cout << "[" << grid[i][j]->name << ", $" << grid[i][j]->price << "]\t";
             }
@@ -53,16 +53,16 @@ public:
         }
     }
 
-    ~Shop() 
+    ~Shop()
     {
-        for(int i = 0; i < rows; i++) 
+        for(int i = 0; i < rows; i++)
         {
-            for(int j = 0; j < cols; j++) 
+            for(int j = 0; j < cols; j++)
             {
                 delete grid[i][j];
             }
         }
-        for(int j = 0; j < rows; j++) 
+        for(int j = 0; j < rows; j++)
         {
             delete[] grid[j];
         }
@@ -70,87 +70,87 @@ public:
     }
 };
 
-class Equipment 
+class Equipment
 {
     int rows;
     int cols;
 public:
     Item*** grid;
-    Equipment(int rows = 5, int cols = 5) : rows{rows}, cols{cols} 
+    Equipment(int rows = 5, int cols = 5) : rows{rows}, cols{cols}
     {
         grid = new Item**[rows];
-        for(int i = 0; i < rows; i++) 
+        for(int i = 0; i < rows; i++)
         {
             grid[i] = new Item*[cols];
         }
         int count = 0;
-        for(int i = 0; i < rows; i++) 
+        for(int i = 0; i < rows; i++)
         {
-            for(int j = 0; j < cols; j++) 
+            for(int j = 0; j < cols; j++)
             {
                 grid[i][j] = new Item("item" + to_string(count), "DEFAULT");
                 count++;
             }
         }
     }
-    ~Equipment() 
+    ~Equipment()
     {
-        for(int i = 0; i < rows; i++) 
+        for(int i = 0; i < rows; i++)
         {
-            for(int j = 0; j < cols; j++) 
+            for(int j = 0; j < cols; j++)
             {
                 delete grid[i][j];
             }
         }
-        for(int j = 0; j < rows; j++) 
+        for(int j = 0; j < rows; j++)
         {
             delete[] grid[j];
         }
         delete[] grid;
     }
-    void display() 
+    void display()
     {
-        for(int i = 0; i < rows; i++) 
+        for(int i = 0; i < rows; i++)
         {
-            for(int j = 0; j < cols; j++) 
+            for(int j = 0; j < cols; j++)
             {
                 cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "\t]\t";
             }
             cout << endl;
         }
     }
-    void move(int row1, int col1, int row2, int col2) 
+    void move(int row1, int col1, int row2, int col2)
     {
-        if(row1 < rows && col1 < cols && row2 < rows && col2 < cols) 
+        if(row1 < rows && col1 < cols && row2 < rows && col2 < cols)
         {
             Item* temp = grid[row1][col1];
             grid[row1][col1] = grid[row2][col2];
             grid[row2][col2] = temp;
         }
-        else 
+        else
         {
             cout << "Invalid values entered" << endl;
         }
     }
-    void showDetails(int row, int col) 
+    void showDetails(int row, int col)
     {
-        if (row < rows && col < cols && grid[row][col] != nullptr) 
+        if (row < rows && col < cols && grid[row][col] != nullptr)
         {
             Item* item = grid[row][col];
             cout << "Item Name: " << item->name << endl;
             cout << "Durability: " << item->durability << endl;
             cout << "Details: " << item->details << endl;
             cout << "Type: " << item->type << endl;
-            if (item->type == "WEAPON") 
+            if (item->type == "WEAPON")
             {
                 cout << "Attack: " << item->attack << endl;
-            } 
-            else if (item->type == "ARMOR") 
+            }
+            else if (item->type == "ARMOR")
             {
                 cout << "Resistance: " << item->resistance << endl;
             }
-        } 
-        else 
+        }
+        else
         {
             cout << "Invalid position or no item found." << endl;
         }
@@ -158,7 +158,7 @@ public:
 
 };
 
-class Player 
+class Player
 {
     int HP;
     Item* mainHand;
@@ -170,7 +170,7 @@ class Player
     Equipment* eq;
     int gold;
 public:
-    Player() 
+    Player()
     {
         HP = 100;
         mainHand = nullptr;
@@ -181,51 +181,51 @@ public:
         boots = nullptr;
         eq = new Equipment();
     }
-    void setMainWeapon(int i, int j) 
+    void setMainWeapon(int i, int j)
     {
         Item* temp = mainHand;
         mainHand = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
-    void setMainSword(int i, int j) 
+    void setMainSword(int i, int j)
     {
         Item* temp = sword;
         sword = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
-    void setMainHelmet(int i, int j) 
+    void setMainHelmet(int i, int j)
     {
         Item* temp = helmet;
         helmet = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
-    void setMainArmor(int i, int j) 
+    void setMainArmor(int i, int j)
     {
         Item* temp = armor;
         armor = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
-    void setMainPants(int i, int j) 
+    void setMainPants(int i, int j)
     {
         Item* temp = pants;
         pants = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
-    void setMainBoots(int i, int j) 
+    void setMainBoots(int i, int j)
     {
         Item* temp = boots;
         boots = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
-    void showEq() 
+    void showEq()
     {
         eq->display();
     }
-    void moveItem(int row1, int col1, int row2, int col2) 
+    void moveItem(int row1, int col1, int row2, int col2)
     {
         eq->move(row1, col1, row2, col2);
     }
-    void displayPlayerStats() 
+    void displayPlayerStats()
     {
         cout << "HP: " << HP << endl;
         cout << (mainHand != nullptr ? mainHand->name : "Fist") << endl;
@@ -240,7 +240,7 @@ public:
     {
         eq->showDetails(row, col);
     }
-    ~Player() 
+    ~Player()
     {
         delete eq;
     }

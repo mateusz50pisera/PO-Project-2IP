@@ -8,14 +8,14 @@ class Item {
 public:
     string name;
     int durability;
-    string description;
+    string details;
     int attack;
     int resistance;
     string type;
     int price;
 
     Item(string name, string type, int durability = 100, int attack = 0, int resistance = 0, string description = "No description") 
-        : name{name}, type{type}, durability{durability}, description{description}, attack{attack}, resistance{resistance} {}
+        : name{name}, type{type}, durability{durability}, details{details}, attack{attack}, resistance{resistance} {}
 };
 
 class Shop {
@@ -139,7 +139,7 @@ public:
             Item* item = grid[row][col];
             cout << "Item Name: " << item->name << endl;
             cout << "Durability: " << item->durability << endl;
-            cout << "Description: " << item->description << endl;
+            cout << "Details: " << item->details << endl;
             cout << "Type: " << item->type << endl;
             if (item->type == "WEAPON") 
             {

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-//#include <vector>
+#include <vector>
 using namespace std;
 
 class Item
@@ -23,14 +23,9 @@ class Shop
     int rows;
     int cols;
 public:
-    Item*** grid;
-    Shop(int rows = 5, int cols = 5) : rows{rows}, cols{cols}
+    vector<vector<Item*>> grid;
+    Shop(int rows = 5, int cols = 5) : rows{rows}, cols{cols}, grid(rows, vector<Item*>(cols))
     {
-        grid = new Item**[rows];
-        for(int i = 0; i < rows; i++)
-        {
-            grid[i] = new Item*[cols];
-        }
         int count = 0;
         for(int i = 0; i < rows; i++)
         {
@@ -53,6 +48,16 @@ public:
             cout << endl;
         }
     }
+    
+    int getRows() const
+    {
+        return rows;
+    }
+    
+    int getCols() const
+    {
+        return cols;
+    }
 
     ~Shop()
     {
@@ -63,11 +68,6 @@ public:
                 delete grid[i][j];
             }
         }
-        for(int j = 0; j < rows; j++)
-        {
-            delete[] grid[j];
-        }
-        delete[] grid;
     }
 };
 
@@ -76,23 +76,27 @@ class Equipment
     int rows;
     int cols;
 public:
-    Item*** grid;
-    Equipment(int rows = 5, int cols = 5) : rows{rows}, cols{cols}
+    vector<vector<Item*>> grid;
+    Equipment(int rows = 5, int cols = 5) : rows{rows}, cols{cols}, grid(rows, vector<Item*>(cols))
     {
-        grid = new Item**[rows];
-        for(int i = 0; i < rows; i++)
-        {
-            grid[i] = new Item*[cols];
-        }
         int count = 0;
         for(int i = 0; i < rows; i++)
         {
             for(int j = 0; j < cols; j++)
             {
-                grid[i][j] = new Item("item" + to_string(count), "DEFAULT");
+                grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 100, 10, 0, "Default item for sale");
                 count++;
             }
         }
+    }
+    int getRows() const
+    {
+        return rows;
+    }
+    
+    int getCols() const
+    {
+        return cols;
     }
     ~Equipment()
     {
@@ -103,11 +107,6 @@ public:
                 delete grid[i][j];
             }
         }
-        for(int j = 0; j < rows; j++)
-        {
-            delete[] grid[j];
-        }
-        delete[] grid;
     }
     void display()
     {
@@ -156,7 +155,20 @@ public:
             cout << "Invalid position or no item found." << endl;
         }
     }
-
+    void deleteItem(int row, int col)
+    {
+        if (row < rows && col < cols && grid[row][col] != nullptr)
+        {
+            // Delete the item from the player's equipment and replace it with a placeholder item
+            cout << "Deleted item " << grid[row][col]->name << endl;
+            delete grid[row][col];
+            grid[row][col] = new Item("none", "DEFAULT", 100, 0, 0, "No item available");
+        }
+        else
+        {
+            cout << "Invalid position or no item found in player's equipment." << endl;
+        }
+    }
 };
 
 class Player
@@ -241,6 +253,56 @@ public:
     {
         eq->showDetails(row, col);
     }
+    void showGold()
+    {
+        cout << "Your gold: " << gold << endl;
+    }
+    void buy(int row, int col, Shop& shop)
+    {
+        if (row < shop.getRows() && col < shop.getCols() && shop.grid[row][col] != nullptr)
+        {
+            Item* itemToBuy = shop.grid[row][col];
+            if (gold >= itemToBuy->price)
+            {
+                gold -= itemToBuy->price;
+                // Remove the bought item from the shop's inventory
+                delete shop.grid[row][col];
+                shop.grid[row][col] = new Item("none", "DEFAULT", 100, 0, 0, "No item available");
+                // Add the bought item to the player's equipment
+                eq->move(0, 0, row, col); // Move to first available slot in player's equipment
+                cout << "You bought " << itemToBuy->name << " for $" << itemToBuy->price << endl;
+            }
+            else
+            {
+                cout << "Not enough gold to buy " << itemToBuy->name << endl;
+            }
+        }
+        else
+        {
+            cout << "Invalid position or no item found in shop." << endl;
+        }
+    }
+    void sell(int row, int col, Shop& shop)
+    {
+        if (row < eq->getRows() && col < eq->getCols() && eq->grid[row][col] != nullptr)
+        {
+            Item* itemToSell = eq->grid[row][col];
+            int sellPrice = itemToSell->price / 2;
+            gold += sellPrice;
+            cout << "You sold " << itemToSell->name << " for $" << sellPrice << endl;
+            // Add the sold item back to the shop's inventory
+            shop.grid[row][col] = itemToSell;
+            eq->grid[row][col] = nullptr; // Remove the item from player's inventory
+        }
+        else
+        {
+            cout << "Invalid position or no item found in player's inventory." << endl;
+        }
+    }
+    void removeItem(int row, int col)
+    {
+        eq->deleteItem(row, col);
+    }
     ~Player()
     {
         delete eq;
@@ -269,7 +331,15 @@ int main()
     P.moveItem(4, 4, 2, 0);
     P.displayPlayerStats();
     P.showDetails(2, 0);
+    P.showGold();
+    P.buy(1, 1, shop);
+    P.showEq();
     shop.display();
+    P.sell(2, 0, shop);
+    shop.display();
+    P.removeItem(1, 1);
+    P.showEq();
+    
 
     return 0;
 }

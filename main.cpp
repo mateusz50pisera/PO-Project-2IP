@@ -264,6 +264,12 @@ public:
             Item* itemToBuy = shop.grid[row][col];
             if (gold >= itemToBuy->price)
             {
+                // Checks if inventory is full of items
+                if (eq->getRows() * eq->getCols() >= 6 * 6) {
+                    cout << "Inventory is full, cannot buy more items." << endl;
+                    return;
+                }
+    
                 gold -= itemToBuy->price;
                 // Remove the bought item from the shop's inventory
                 delete shop.grid[row][col];
@@ -303,6 +309,27 @@ public:
     {
         eq->deleteItem(row, col);
     }
+    // If amount of gold is equal or more than 300 then it expands the inventory DOESN'T WORK YET
+    void expand()
+    {
+        if (gold >= 300)
+        {
+            eq->grid.resize(6, vector<Item*>(6, nullptr));
+            int count = 0;
+            for (int i = 0; i < eq->getRows(); i++)
+            {
+                for (int j = 0; j < eq->getCols(); j++)
+                {
+                    if (eq->grid[i][j] == nullptr)
+                    {
+                        eq->grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 100, 10, 0, "Default item for sale");
+                        count++;
+                    }
+                }
+            }
+            gold -= 300;
+        }
+    }
     ~Player()
     {
         delete eq;
@@ -338,6 +365,8 @@ int main()
     P.sell(2, 0, shop);
     shop.display();
     P.removeItem(1, 1);
+    P.showEq();
+    P.expand();
     P.showEq();
     
 

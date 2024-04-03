@@ -12,10 +12,11 @@ public:
     int attack;
     int resistance;
     string type;
+    string rarity;
     int price;
 
     Item(string name, string type, int durability = 100, int attack = 0, int resistance = 0, string details = "No details")
-        : name{name}, type{type}, durability{durability}, details{details}, attack{attack}, resistance{resistance} {}
+        : name{name}, type{type}, durability{durability}, details{details}, attack{attack}, resistance{resistance}, rarity{rarity} {}
 };
 
 class Shop
@@ -181,8 +182,8 @@ class Player
     Item* pants;
     Item* boots;
     Equipment* eq;
-    int gold;
 public:
+    int gold;
     Player()
     {
         HP = 100;
@@ -336,6 +337,14 @@ public:
     }
 };
 
+class Game
+{
+    void play()
+    {
+        
+    }
+};
+
 int main()
 {
     Player P;
@@ -366,6 +375,7 @@ int main()
     shop.display();
     P.removeItem(1, 1);
     P.showEq();
+    P.gold = 300;
     P.expand();
     P.showEq();
     

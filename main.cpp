@@ -22,9 +22,21 @@ public:
     int resistance;
     string type;
     int price;
+    string rarity; // Added rarity
 
-    Item(string name, string type, int durability = 100, int attack = 0, int resistance = 0, string details = "No details")
-        : name{name}, type{type}, durability{durability}, details{details}, attack{attack}, resistance{resistance} {}
+    Item(string name, string type, int durability = 100, int attack = 0, int resistance = 0, string details = "No details", string rarity = "Common")
+        : name{name}, type{type}, durability{durability}, details{details}, attack{attack}, resistance{resistance}, rarity{rarity} {}
+
+    // Function to get the color code based on rarity
+    string getRarityColor() const {
+        switch (rarityMap.at(rarity)) {
+        case 2: return "\033[32m"; // Green
+        case 3: return "\033[34m"; // Blue
+        case 4: return "\033[35m"; // Purple
+        case 5: return "\033[33m"; // Yellow
+        default: return ""; // No color for Common
+        }
+    }
 };
 
 class Shop
@@ -52,7 +64,9 @@ public:
         {
             for(int j = 0; j < cols; j++)
             {
-                cout << "[" << grid[i][j]->name << ", $" << grid[i][j]->price << "]\t";
+                Item* item = grid[i][j];
+                string rarityColor = item->getRarityColor();
+                cout << rarityColor << "[" << item->name << ", $" << item->price << "]\t\033[0m"; // Reset color after printing
             }
             cout << endl;
         }
@@ -183,7 +197,7 @@ public:
         {
             for(int j = 0; j < cols; j++)
             {
-                cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "\t]\t";
+                cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "]\t\t";
             }
             cout << endl;
         }
@@ -218,6 +232,7 @@ public:
             {
                 cout << "Resistance: " << item->resistance << endl;
             }
+            cout << "Rarity: " << item->getRarityColor() << item->rarity << "\t\033[0m" << endl;
         }
         else
         {
@@ -314,13 +329,9 @@ public:
             eq->expand();
             gold -= 300;
         }
-        else if (gold < 300)
-        {
-            cout << "Not enough gold." << endl;
-        }
         else
         {
-            cout << "There's an error" << endl;
+            cout << "Not enough gold." << endl;
         }
     }
 
@@ -364,7 +375,7 @@ public:
                 delete shop.grid[row][col];
                 shop.grid[row][col] = new Item("none", "DEFAULT", 100, 0, 0, "No item available");
                 // Add the bought item to the player's equipment
-                eq->move(0, 0, row, col); // Move to first available slot in player's equipment
+                eq->grid[row][col] = itemToBuy; // Assign the bought item directly to the player's equipment
                 cout << "You bought " << itemToBuy->name << " for $" << itemToBuy->price << endl;
             }
             else
@@ -408,8 +419,9 @@ int main()
 {
     Player P;
     Shop shop;
-    P.gold = 300;
+    P.gold = 600;
     P.showEq();
+    shop.display();
     P.displayPlayerStats();
     P.setMainWeapon(3, 4);
     P.setMainSword(4, 1);
@@ -428,15 +440,16 @@ int main()
     P.displayPlayerStats();
     P.showDetails(2, 0);
     P.showGold();
-    P.buy(1, 1, shop);
+    P.buy(0, 0, shop);
+    P.showDetails(0, 0);
     P.showEq();
+    P.moveItem(0, 0, 2, 2);
     shop.display();
     P.sell(2, 0, shop);
     shop.display();
     P.removeItem(1, 1);
     P.showEq();
     P.expandInventory();
-    P.sort(true);
     P.showEq();
 
     return 0;

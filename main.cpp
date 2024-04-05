@@ -1,7 +1,16 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
 using namespace std;
+
+map<string, int> rarityMap = {
+    {"Common", 1},
+    {"Uncommon", 2},
+    {"Rare", 3},
+    {"Epic", 4},
+    {"Legendary", 5}
+}
 
 class Item
 {
@@ -11,8 +20,7 @@ public:
     string details;
     int attack;
     int resistance;
-    string type;
-    int price;
+    string type;                             
 
     Item(string name, string type, int durability = 100, int attack = 0, int resistance = 0, string details = "No details")
         : name{name}, type{type}, durability{durability}, details{details}, attack{attack}, resistance{resistance} {}
@@ -48,12 +56,12 @@ public:
             cout << endl;
         }
     }
-    
+
     int getRows() const
     {
         return rows;
     }
-    
+
     int getCols() const
     {
         return cols;
@@ -93,7 +101,7 @@ public:
     {
         return rows;
     }
-    
+
     int getCols() const
     {
         return cols;
@@ -238,6 +246,10 @@ public:
     {
         eq->move(row1, col1, row2, col2);
     }
+
+    void sort(bool asc = false){
+
+    }
     void displayPlayerStats()
     {
         cout << "HP: " << HP << endl;
@@ -269,7 +281,7 @@ public:
                     cout << "Inventory is full, cannot buy more items." << endl;
                     return;
                 }
-    
+
                 gold -= itemToBuy->price;
                 // Remove the bought item from the shop's inventory
                 delete shop.grid[row][col];
@@ -368,7 +380,9 @@ int main()
     P.showEq();
     P.expand();
     P.showEq();
-    
+    P.sort(true);
+    P.showEq();
+
 
     return 0;
 }

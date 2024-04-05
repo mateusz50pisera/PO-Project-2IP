@@ -10,7 +10,7 @@ map<string, int> rarityMap = {
     {"Rare", 3},
     {"Epic", 4},
     {"Legendary", 5}
-}
+};
 
 class Item
 {
@@ -20,7 +20,8 @@ public:
     string details;
     int attack;
     int resistance;
-    string type;                             
+    string type;
+    int price;
 
     Item(string name, string type, int durability = 100, int attack = 0, int resistance = 0, string details = "No details")
         : name{name}, type{type}, durability{durability}, details{details}, attack{attack}, resistance{resistance} {}
@@ -83,6 +84,7 @@ class Equipment
 {
     int rows;
     int cols;
+
 public:
     vector<vector<Item*>> grid;
     Equipment(int rows = 5, int cols = 5) : rows{rows}, cols{cols}, grid(rows, vector<Item*>(cols))
@@ -97,6 +99,7 @@ public:
             }
         }
     }
+
     int getRows() const
     {
         return rows;
@@ -106,6 +109,64 @@ public:
     {
         return cols;
     }
+
+    void setRows(int newRows)
+    {
+        rows = newRows;
+    }
+
+    void setCols(int newCols)
+    {
+        cols = newCols;
+    }
+
+    void expand()
+    {
+        if (rows < 10 && cols < 10) // Ensure the grid doesn't exceed 10x10
+        {
+            int newRowSize = rows + 1;
+            int newColSize = cols + 1;
+
+            // Create a new grid with expanded size
+            vector<vector<Item*>> newGrid(newRowSize, vector<Item*>(newColSize, nullptr));
+
+            // Copy existing items to the new grid
+            for (int i = 0; i < rows; ++i) {
+                for (int j = 0; j < cols; ++j) {
+                    newGrid[i][j] = grid[i][j];
+                }
+            }
+
+            // Initialize newly added elements in the last row
+            for (int j = 0; j < newColSize; ++j) {
+                newGrid[newRowSize - 1][j] = new Item("item" + to_string((newRowSize - 1) * newColSize + j), "DEFAULT", 100, 10, 0, "Default item for sale");
+            }
+
+            // Delete the old grid items
+            for (int i = 0; i < rows; ++i) {
+                for (int j = 0; j < cols; ++j) {
+                    delete grid[i][j];
+                }
+            }
+
+            // Clear the old grid
+            grid.clear();
+
+            // Assign the new grid to the equipment
+            grid = newGrid;
+
+            // Update the size of rows and columns
+            setRows(newRowSize);
+            setCols(newColSize);
+
+            cout << "Inventory expanded to " << newRowSize << "x" << newColSize << endl;
+        }
+        else
+        {
+            cout << "Cannot expand inventory after 10x10" << endl;
+        }
+    }
+
     ~Equipment()
     {
         for(int i = 0; i < rows; i++)
@@ -189,8 +250,8 @@ class Player
     Item* pants;
     Item* boots;
     Equipment* eq;
-    int gold;
 public:
+    int gold;
     Player()
     {
         HP = 100;
@@ -245,6 +306,22 @@ public:
     void moveItem(int row1, int col1, int row2, int col2)
     {
         eq->move(row1, col1, row2, col2);
+    }
+    void expandInventory()
+    {
+        if (gold >= 300)
+        {
+            eq->expand();
+            gold -= 300;
+        }
+        else if (gold < 300)
+        {
+            cout << "Not enough gold." << endl;
+        }
+        else
+        {
+            cout << "There's an error" << endl;
+        }
     }
 
     void sort(bool asc = false){
@@ -321,27 +398,6 @@ public:
     {
         eq->deleteItem(row, col);
     }
-    // If amount of gold is equal or more than 300 then it expands the inventory DOESN'T WORK YET
-    void expand()
-    {
-        if (gold >= 300)
-        {
-            eq->grid.resize(6, vector<Item*>(6, nullptr));
-            int count = 0;
-            for (int i = 0; i < eq->getRows(); i++)
-            {
-                for (int j = 0; j < eq->getCols(); j++)
-                {
-                    if (eq->grid[i][j] == nullptr)
-                    {
-                        eq->grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 100, 10, 0, "Default item for sale");
-                        count++;
-                    }
-                }
-            }
-            gold -= 300;
-        }
-    }
     ~Player()
     {
         delete eq;
@@ -352,6 +408,7 @@ int main()
 {
     Player P;
     Shop shop;
+    P.gold = 300;
     P.showEq();
     P.displayPlayerStats();
     P.setMainWeapon(3, 4);
@@ -378,11 +435,9 @@ int main()
     shop.display();
     P.removeItem(1, 1);
     P.showEq();
-    P.expand();
-    P.showEq();
+    P.expandInventory();
     P.sort(true);
     P.showEq();
-
 
     return 0;
 }

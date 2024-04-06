@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <algorithm>
+
 using namespace std;
 
 map<string, int> rarityMap = {
@@ -25,8 +27,8 @@ public:
     int price;
     string rarity; // Added rarity
 
-    Item(string name, string type, int durability = 100, int attack = 0, int resistance = 0, string details = "No details", string rarity = "Common")
-        : name{name}, type{type}, durability{durability}, details{details}, attack{attack}, resistance{resistance}, rarity{rarity} {}
+    Item(string name, string type, int price, int durability = 100, int attack = 0, int resistance = 0, string details = "No details", string rarity = "Common")
+        : name{name}, type{type}, price{price}, durability{durability}, details{details}, attack{attack}, resistance{resistance}, rarity{rarity} {}
 
     // Function to get the color code based on rarity
     string getRarityColor() const {
@@ -53,7 +55,7 @@ public:
         {
             for(int j = 0; j < cols; j++)
             {
-                grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 100, 10, 0, "Default item for sale");
+                grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 100, 10, 0, 0, "Default item for sale");
                 count++;
             }
         }
@@ -99,6 +101,38 @@ class Equipment
 {
     int rows;
     int cols;
+    // Helper function to make sorting items easier
+    void sortItems(std::function<bool(const Item*, const Item*)> comparator, bool ascending)
+    {
+        for (int i = 0; i < rows; ++i)
+        {
+            for (int j = 0; j < cols; ++j)
+            {
+                for (int k = 0; k < rows; ++k)
+                {
+                    for (int l = 0; l < cols; ++l)
+                    {
+                        if (grid[i][j] != nullptr && grid[k][l] != nullptr)
+                        {
+                            if (ascending)
+                            {
+                                if (comparator(grid[k][l], grid[i][j]))
+                                {
+                                    std::swap(grid[k][l], grid[i][j]);
+                                }
+                            } else
+                            {
+                                if (comparator(grid[i][j], grid[k][l]))
+                                {
+                                    std::swap(grid[k][l], grid[i][j]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 public:
     vector<vector<Item*>> grid;
@@ -109,7 +143,7 @@ public:
         {
             for(int j = 0; j < cols; j++)
             {
-                grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 100, 10, 0, "Default item for sale");
+                grid[i][j] = new Item(to_string(count), "DEFAULT", 100, 10, 0, 0, "Default item for sale");
                 count++;
             }
         }
@@ -156,7 +190,7 @@ public:
             // Initialize newly added elements in the last row
             for (int j = 0; j < newColSize; j++)
             {
-                newGrid[newRowSize - 1][j] = new Item("none", "DEFAULT", 100, 0, 0, "No item available");  // Initialize with default item
+                newGrid[newRowSize - 1][j] = new Item("none", "DEFAULT", 100, 0, 0, 0, "No item available");  // Initialize with default item
             }
 
             // Replace the old grid with the new one
@@ -196,6 +230,7 @@ public:
             cout << "Invalid values entered" << endl;
         }
     }
+
     void showDetails(int row, int col)
     {
         if (row < rows && col < cols && grid[row][col] != nullptr)
@@ -220,6 +255,7 @@ public:
             cout << "Invalid position or no item found." << endl;
         }
     }
+
     void deleteItem(int row, int col)
     {
         if (row < rows && col < cols && grid[row][col] != nullptr)
@@ -227,13 +263,51 @@ public:
             // Delete the item from the player's equipment and replace it with a placeholder item
             cout << "Deleted item " << grid[row][col]->name << endl;
             delete grid[row][col];
-            grid[row][col] = new Item("none", "DEFAULT", 100, 0, 0, "No item available");
+            grid[row][col] = new Item("none", "DEFAULT", 100, 0, 0, 0, "No item available");
         }
         else
         {
             cout << "Invalid position or no item found in player's equipment." << endl;
         }
     }
+
+    // Sorting methods depending on what user wants
+    void sortByName(bool ascending = true)
+    {
+        auto comparator = [](const Item* a, const Item* b) {
+            return a->name < b->name;
+        };
+
+        sortItems(comparator, ascending);
+    }
+
+    void sortByDurability(bool ascending = true)
+    {
+        auto comparator = [](const Item* a, const Item* b) {
+            return a->durability < b->durability;
+        };
+
+        sortItems(comparator, ascending);
+    }
+
+    void sortByPrice(bool ascending = true)
+    {
+        auto comparator = [](const Item* a, const Item* b) {
+            return a->price < b->price;
+        };
+
+        sortItems(comparator, ascending);
+    }
+
+    void sortByRarity(bool ascending = true)
+    {
+        auto comparator = [this](const Item* a, const Item* b) {
+            return rarityMap[a->rarity] < rarityMap[b->rarity];
+        };
+
+        sortItems(comparator, ascending);
+    }
+
     ~Equipment()
     {
         for(int i = 0; i < rows; i++)
@@ -326,9 +400,25 @@ public:
         }
     }
 
-    void sort(bool asc = false)
+    void sort(bool asc = false, int option = 1)
     {
-
+        switch (option) {
+        case 1:
+            eq->sortByName(asc);
+            break;
+        case 2:
+            eq->sortByDurability(asc);
+            break;
+        case 3:
+            eq->sortByPrice(asc);
+            break;
+        case 4:
+            eq->sortByRarity(asc);
+            break;
+        default:
+            cout << "Invalid criteria" << endl;
+            break;
+        }
     }
     void displayPlayerStats()
     {
@@ -357,7 +447,7 @@ public:
             if (gold >= itemToBuy->price)
             {
                 // Checks if inventory is full of items
-                if (eq->getRows() * eq->getCols() >= 6 * 6) 
+                if (eq->getRows() * eq->getCols() >= 6 * 6)
                 {
                     cout << "Inventory is full, cannot buy more items." << endl;
                     return;
@@ -366,7 +456,7 @@ public:
                 gold -= itemToBuy->price;
                 // Remove the bought item from the shop's inventory
                 delete shop.grid[row][col];
-                shop.grid[row][col] = new Item("none", "DEFAULT", 100, 0, 0, "No item available");
+                shop.grid[row][col] = new Item("none", "DEFAULT", 100, 0, 0, 0, "No item available");
                 // Add the bought item to the player's equipment
                 eq->grid[row][col] = itemToBuy; // Assign the bought item directly to the player's equipment
                 cout << "You bought " << itemToBuy->name << " for $" << itemToBuy->price << endl;
@@ -435,6 +525,9 @@ int main()
     P.displayPlayerStats();
     P.showDetails(2, 0);
 
+    // This is a test item in shop
+    shop.grid[0][0] = new Item("Sword of Power", "WEAPON", 200, 100, 50, 0, "An ancient sword", "Epic");
+
     P.showGold();
     P.buy(0, 0, shop);
     P.showDetails(0, 0);
@@ -451,5 +544,10 @@ int main()
     P.expandInventory();
     P.showEq();
 
+    cout << "After sorting:\n";
+    P.sort(false, 4);
+    P.showEq();
+
+    P.showDetails(5, 5);
     return 0;
 }

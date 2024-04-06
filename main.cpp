@@ -15,6 +15,7 @@ map<string, int> rarityMap = {
 class Item
 {
 public:
+    Item() {}
     string name;
     int durability;
     string details;
@@ -101,7 +102,7 @@ class Equipment
 
 public:
     vector<vector<Item*>> grid;
-    Equipment(int rows = 5, int cols = 5) : rows{rows}, cols{cols}, grid(rows, vector<Item*>(cols))
+    Equipment(int rows = 5, int cols = 5) : rows(rows), cols(cols), grid(rows, vector<Item*>(cols))
     {
         int count = 0;
         for(int i = 0; i < rows; i++)
@@ -134,9 +135,8 @@ public:
         cols = newCols;
     }
 
-    void expand()
-    {
-        if (rows < 10 && cols < 10) // Ensure the grid doesn't exceed 10x10
+    void expand() {
+        if (rows < 10 && cols < 10)
         {
             int newRowSize = rows + 1;
             int newColSize = cols + 1;
@@ -145,33 +145,24 @@ public:
             vector<vector<Item*>> newGrid(newRowSize, vector<Item*>(newColSize, nullptr));
 
             // Copy existing items to the new grid
-            for (int i = 0; i < rows; ++i) {
-                for (int j = 0; j < cols; ++j) {
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
                     newGrid[i][j] = grid[i][j];
                 }
             }
 
             // Initialize newly added elements in the last row
-            for (int j = 0; j < newColSize; ++j) {
-                newGrid[newRowSize - 1][j] = new Item("item" + to_string((newRowSize - 1) * newColSize + j), "DEFAULT", 100, 10, 0, "Default item for sale");
+            for (int j = 0; j < newColSize; j++)
+            {
+                newGrid[newRowSize - 1][j] = new Item("none", "DEFAULT", 100, 0, 0, "No item available");  // Initialize with default item
             }
 
-            // Delete the old grid items
-            for (int i = 0; i < rows; ++i) {
-                for (int j = 0; j < cols; ++j) {
-                    delete grid[i][j];
-                }
-            }
-
-            // Clear the old grid
-            grid.clear();
-
-            // Assign the new grid to the equipment
-            grid = newGrid;
-
-            // Update the size of rows and columns
-            setRows(newRowSize);
-            setCols(newColSize);
+            // Replace the old grid with the new one
+            grid = std::move(newGrid);
+            rows = newRowSize;
+            cols = newColSize;
 
             cout << "Inventory expanded to " << newRowSize << "x" << newColSize << endl;
         }
@@ -181,16 +172,6 @@ public:
         }
     }
 
-    ~Equipment()
-    {
-        for(int i = 0; i < rows; i++)
-        {
-            for(int j = 0; j < cols; j++)
-            {
-                delete grid[i][j];
-            }
-        }
-    }
     void display()
     {
         for(int i = 0; i < rows; i++)
@@ -251,6 +232,16 @@ public:
         else
         {
             cout << "Invalid position or no item found in player's equipment." << endl;
+        }
+    }
+    ~Equipment()
+    {
+        for(int i = 0; i < rows; i++)
+        {
+            for(int j = 0; j < cols; j++)
+            {
+                delete grid[i][j];
+            }
         }
     }
 };
@@ -335,7 +326,8 @@ public:
         }
     }
 
-    void sort(bool asc = false){
+    void sort(bool asc = false)
+    {
 
     }
     void displayPlayerStats()
@@ -365,7 +357,8 @@ public:
             if (gold >= itemToBuy->price)
             {
                 // Checks if inventory is full of items
-                if (eq->getRows() * eq->getCols() >= 6 * 6) {
+                if (eq->getRows() * eq->getCols() >= 6 * 6) 
+                {
                     cout << "Inventory is full, cannot buy more items." << endl;
                     return;
                 }
@@ -422,6 +415,7 @@ int main()
     P.gold = 600;
     P.showEq();
     shop.display();
+
     P.displayPlayerStats();
     P.setMainWeapon(3, 4);
     P.setMainSword(4, 1);
@@ -435,20 +429,25 @@ int main()
     P.setMainArmor(2, 3);
     P.setMainPants(2, 0);
     P.setMainBoots(4, 4);
+
     P.displayPlayerStats();
     P.moveItem(4, 4, 2, 0);
     P.displayPlayerStats();
     P.showDetails(2, 0);
+
     P.showGold();
     P.buy(0, 0, shop);
     P.showDetails(0, 0);
-    P.showEq();
+
     P.moveItem(0, 0, 2, 2);
     shop.display();
+
     P.sell(2, 0, shop);
     shop.display();
+
     P.removeItem(1, 1);
     P.showEq();
+
     P.expandInventory();
     P.showEq();
 

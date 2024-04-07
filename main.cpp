@@ -728,8 +728,12 @@ public:
 
             char input = _getch(); // Get a single character input without waiting for Enter
 
-            if (input == 13) // Enter key
-                return selectedIndex; // Return the selected index
+            if (input == 13) { // Enter key
+                if (selectedIndex == 2) // If "Exit" is selected
+                    exit(0); // Exit the program
+                else
+                    return selectedIndex; // Return the selected index for other options
+            }
 
             if (input == 'w' || input == 'W') // W key
                 selectedIndex = (selectedIndex - 1 + 3) % 3;
@@ -741,43 +745,70 @@ public:
 
     void runGame() {
         int option = navigateMainMenu();
-
-        // Check if the user selected the exit option
-        if (option == 2) {
-            std::cout << "Exiting the game..." << std::endl;
-            return;
-        }
+        system("cls || clear");
+        gameBoard.display();
 
         while (true) {
+            if (_kbhit()) {
+                char input = _getch();
+                if (input == 27) { // If the escape key is pressed
+                    option = pauseGame(option);
+                    if (option == 0) {
+                        // Continue, so just break out of the pause loop
+                        continue;
+                    } else if (option == 1) {
+                        navigateMainMenu();
+                    }
+                }
+
+                // Movement controls
+                int newRow = gameBoard.getPlayerRow();
+                int newCol = gameBoard.getPlayerCol();
+
+                switch (input) {
+                case 'w':
+                case 'W':
+                    newRow = (newRow - 1 + gameBoard.getSize()) % gameBoard.getSize();
+                    break;
+                case 's':
+                case 'S':
+                    newRow = (newRow + 1) % gameBoard.getSize();
+                    break;
+                case 'a':
+                case 'A':
+                    newCol = (newCol - 1 + gameBoard.getSize()) % gameBoard.getSize();
+                    break;
+                case 'd':
+                case 'D':
+                    newCol = (newCol + 1) % gameBoard.getSize();
+                    break;
+                default:
+                    break;
+                }
+
+                gameBoard.updatePlayerPosition(newRow, newCol);
+                system("cls || clear");
+                gameBoard.display(); // Display the updated game board
+            }
+        }
+    }
+
+    int pauseGame(int selectedIndex) {
+        while (true) {
             system("cls || clear");
-            gameBoard.display();
+            std::cout << "Pause Menu\n";
+            std::cout << (selectedIndex == 0 ? "> " : "  ") << "Continue\n";
+            std::cout << (selectedIndex == 1 ? "> " : "  ") << "Exit to main menu";
 
             char input = _getch();
-            int newRow = gameBoard.getPlayerRow();
-            int newCol = gameBoard.getPlayerCol();
+            if (input == 13) // Enter key
+                return selectedIndex; // Return the selected index
 
-            switch (input) {
-            case 'w':
-            case 'W':
-                newRow = (newRow - 1 + gameBoard.getSize()) % gameBoard.getSize();
-                break;
-            case 's':
-            case 'S':
-                newRow = (newRow + 1) % gameBoard.getSize();
-                break;
-            case 'a':
-            case 'A':
-                newCol = (newCol - 1 + gameBoard.getSize()) % gameBoard.getSize();
-                break;
-            case 'd':
-            case 'D':
-                newCol = (newCol + 1) % gameBoard.getSize();
-                break;
-            default:
-                break;
-            }
+            if (input == 'w' || input == 'W') // W key
+                selectedIndex = (selectedIndex - 1 + 2) % 2;
 
-            gameBoard.updatePlayerPosition(newRow, newCol);
+            if (input == 's' || input == 'S') // S key
+                selectedIndex = (selectedIndex + 1) % 2;
         }
     }
 

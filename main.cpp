@@ -664,41 +664,53 @@ public:
 class GameBoard {
 private:
     int size;
-    vector<vector<char>> board;
+    int playerRow;
+    int playerCol;
 
 public:
-    GameBoard(int size) : size(size) {
-        // Initialize the game board with empty spaces
-        board.assign(size, vector<char>(size, '.'));
+    GameBoard(int s) : size(s), playerRow(s / 2), playerCol(s / 2) {}
+
+    void updatePlayerPosition(int row, int col) {
+        // Update player position logic
+        playerRow = row;
+        playerCol = col;
     }
 
-    void display() const {
+    void display() {
+        // Display game board logic
         for (int i = 0; i < size; ++i) {
             for (int j = 0; j < size; ++j) {
-                cout << board[i][j] << " ";
+                if (i == playerRow && j == playerCol)
+                    std::cout << "P ";
+                else
+                    std::cout << ". ";
             }
-            cout << endl;
+            std::cout << std::endl;
         }
     }
 
-    void updatePlayerPosition(int row, int col) {
-        // Update the player position on the game board
-        board[row][col] = 'P';
+    int getSize() const {
+        return size;
     }
 
-    void clearPlayerPosition(int row, int col) {
-        // Clear the player position on the game board
-        board[row][col] = '.';
+    int getPlayerRow() const {
+        return playerRow;
+    }
+
+    int getPlayerCol() const {
+        return playerCol;
     }
 };
+
 
 class Game {
 private:
     Player player;
     Shop shop;
+    GameBoard gameBoard;
 
 public:
-    Game(int boardSize, int playerRow, int playerCol) : player(), shop(boardSize, boardSize) {}
+    Game() : player(), shop(), gameBoard(10) {}
 
     void displayMainMenu(int selectedIndex) {
         system("cls || clear"); // Clear the screen
@@ -727,55 +739,65 @@ public:
         }
     }
 
-    int newGame() {
-        system("cls || clear"); // Clear the screen
-        std::cout << "Starting a new game...\n";
-        player.displayPlayerStats(); // Display player stats including equipment
-        player.showGold(); // Display player's gold
+    void runGame() {
+        int option = navigateMainMenu();
 
-        std::cout << "\nPress 'ESC' to pause the game.\n";
+        // Check if the user selected the exit option
+        if (option == 2) {
+            std::cout << "Exiting the game..." << std::endl;
+            return;
+        }
 
         while (true) {
-            char input = _getch(); // Get a single character input without waiting for Enter
+            system("cls || clear");
+            gameBoard.display();
 
-            if (input == 27) { // ESC key
-                system("cls || clear"); // Clear the screen
-                std::cout << "Game Paused\n";
-                std::cout << "1. Continue\n";
-                std::cout << "2. Exit\n";
+            char input = _getch();
+            int newRow = gameBoard.getPlayerRow();
+            int newCol = gameBoard.getPlayerCol();
 
-                while (true) {
-                    input = _getch(); // Get a single character input without waiting for Enter
-
-                    if (input == '1') // Continue option
-                        return 0;
-
-                    if (input == '2') // Exit option
-                        return 1;
-                }
+            switch (input) {
+            case 'w':
+            case 'W':
+                newRow = (newRow - 1 + gameBoard.getSize()) % gameBoard.getSize();
+                break;
+            case 's':
+            case 'S':
+                newRow = (newRow + 1) % gameBoard.getSize();
+                break;
+            case 'a':
+            case 'A':
+                newCol = (newCol - 1 + gameBoard.getSize()) % gameBoard.getSize();
+                break;
+            case 'd':
+            case 'D':
+                newCol = (newCol + 1) % gameBoard.getSize();
+                break;
+            default:
+                break;
             }
+
+            gameBoard.updatePlayerPosition(newRow, newCol);
         }
     }
 
-    void runGame() {
-        while (true) {
-            int choice = navigateMainMenu();
+    void newGame() {
+        system("cls || clear"); // Clear the screen
+        std::cout << "Starting a new game...\n";
 
-            switch (choice) {
-            case 0:
-                if (newGame() == 1)
-                    return;
-                break;
-            case 1:
-                std::cout << "Load save option selected.\n";
-                break;
-            case 2:
-                std::cout << "Exiting the game. Goodbye!\n";
-                return;
-            default:
-                std::cout << "Invalid choice. Please try again.\n";
-            }
-        }
+        // Initialize player position at the center of the game board
+        int playerRow = gameBoard.getSize() / 2;
+        int playerCol = gameBoard.getSize() / 2;
+        gameBoard.updatePlayerPosition(playerRow, playerCol);
+
+        // Display game board with player at the center
+        gameBoard.display();
+        std::cout << "\nPlaceholder game logic. Press any key to continue...\n";
+        _getch(); // Wait for a key press
+    }
+
+    void play() {
+        runGame();
     }
 };
 
@@ -785,8 +807,8 @@ int main()
     Shop shop;
     Account account("username", "password");
     P.gold = 600;
-    Game game(5, 0, 0);
-    game.newGame();
+    Game game;
+    game.play();
 
 
     // P.displayPlayerStats();

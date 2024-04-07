@@ -116,6 +116,8 @@ class Equipment
 {
     int rows;
     int cols;
+    int pointerRow;
+    int pointerCol;
     // Helper function to make sorting items easier
     void sortItems(function<bool(const Item*, const Item*)> comparator, bool ascending)
     {
@@ -162,6 +164,8 @@ public:
                 count++;
             }
         }
+        pointerRow = 0;
+        pointerCol = 0;
     }
 
     int getRows() const
@@ -223,11 +227,19 @@ public:
 
     void display()
     {
+        // Clear the screen
+        system("cls");
+        cout << "Your inventory:\n";
+
         for(int i = 0; i < rows; i++)
         {
             for(int j = 0; j < cols; j++)
             {
-                cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "]\t\t";
+                if (i == pointerRow && j == pointerCol) {
+                    cout << "> [" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "] <\t\t";
+                } else {
+                    cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "]\t\t";
+                }
             }
             cout << endl;
         }
@@ -243,6 +255,32 @@ public:
         else
         {
             cout << "Invalid values entered" << endl;
+        }
+    }
+
+    void movePointer(char direction)
+    {
+        switch(direction)
+        {
+        case 'w':
+            if(pointerRow > 0)
+                pointerRow--;
+            break;
+        case 'a':
+            if(pointerCol > 0)
+                pointerCol--;
+            break;
+        case 's':
+            if(pointerRow < rows - 1)
+                pointerRow++;
+            break;
+        case 'd':
+            if(pointerCol < cols - 1)
+                pointerCol++;
+            break;
+        default:
+            cout << "Invalid direction" << endl;
+            break;
         }
     }
 
@@ -556,9 +594,9 @@ public:
         // Save player information
         file << "Player Gold: " << player.gold << endl;
         file << "Player Equipment:" << endl;
-        for (int i = 0; i < player.getEquipmentGrid().size(); ++i)
+        for (int i = 0; i < player.getEquipmentGrid().size(); i++)
         {
-            for (int j = 0; j < player.getEquipmentGrid()[i].size(); ++j)
+            for (int j = 0; j < player.getEquipmentGrid()[i].size(); j++)
             {
                 if (player.getEquipmentGrid()[i][j] != nullptr)
                 {
@@ -577,9 +615,9 @@ public:
 
         // Save shop information
         file << "Shop Items:" << endl;
-        for (int i = 0; i < shop.grid.size(); ++i)
+        for (int i = 0; i < shop.grid.size(); i++)
         {
-            for (int j = 0; j < shop.grid[i].size(); ++j)
+            for (int j = 0; j < shop.grid[i].size(); j++)
             {
                 if (shop.grid[i][j] != nullptr)
                 {
@@ -678,14 +716,14 @@ public:
 
     void display() {
         // Display game board logic
-        for (int i = 0; i < size; ++i) {
-            for (int j = 0; j < size; ++j) {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
                 if (i == playerRow && j == playerCol)
-                    std::cout << "P ";
+                    cout << "P ";
                 else
-                    std::cout << ". ";
+                    cout << ". ";
             }
-            std::cout << std::endl;
+            cout << endl;
         }
     }
 
@@ -708,19 +746,20 @@ private:
     Player player;
     Shop shop;
     GameBoard gameBoard;
+    Equipment eq;
 
 public:
     Game() : player(), shop(), gameBoard(10) {}
 
     void displayMainMenu(int selectedIndex) {
         system("cls || clear"); // Clear the screen
-        std::cout << "Main Menu\n";
-        std::cout << (selectedIndex == 0 ? "> " : "  ") << "New Game\n";
-        std::cout << (selectedIndex == 1 ? "> " : "  ") << "Load Save\n";
-        std::cout << (selectedIndex == 2 ? "> " : "  ") << "Exit\n";
+        cout << "Main Menu\n";
+        cout << (selectedIndex == 0 ? "> " : "  ") << "New Game\n";
+        cout << (selectedIndex == 1 ? "> " : "  ") << "Load Save\n";
+        cout << (selectedIndex == 2 ? "> " : "  ") << "Exit\n";
     }
 
-    int navigateMainMenu() {
+    int mainMenu() {
         int selectedIndex = 0;
 
         while (true) {
@@ -743,21 +782,60 @@ public:
         }
     }
 
+    bool showInGameInventory()
+    {
+        char userInput;
+        bool showInventory = true;
+
+        while(true)
+        {
+            if(showInventory)
+            {
+                eq.display();
+                userInput = _getch();
+                if (userInput == 27) // Check if the user pressed the escape key
+                {
+                    showInventory = false; // Hide the inventory
+                    return true;
+                    break; // Exit the loop
+                }
+                else
+                {
+                    eq.movePointer(userInput);
+                }
+            }
+            else
+            {
+                showInventory = true;
+                break; // Exit the loop
+            }
+        }
+        return false;
+    }
+
     void runGame() {
-        int option = navigateMainMenu();
+        int option = mainMenu();
         system("cls || clear");
         gameBoard.display();
 
         while (true) {
             if (_kbhit()) {
                 char input = _getch();
-                if (input == 27) { // If the escape key is pressed
+                if (input == 'e' || input == 'E') { // If the 'e' key is pressed
+                    if (showInGameInventory()) {
+                        // Escape key was pressed while inventory was shown
+                        system("cls || clear");
+                        gameBoard.display(); // Display the game board
+                    }
+                    continue; // Continue to wait for input after displaying inventory
+                } else if (input == 27) { // If the escape key is pressed
                     option = pauseGame(option);
                     if (option == 0) {
                         // Continue, so just break out of the pause loop
                         continue;
                     } else if (option == 1) {
-                        navigateMainMenu();
+                        mainMenu();
+                        break; // Exit the game loop and return to main menu
                     }
                 }
 
@@ -796,9 +874,9 @@ public:
     int pauseGame(int selectedIndex) {
         while (true) {
             system("cls || clear");
-            std::cout << "Pause Menu\n";
-            std::cout << (selectedIndex == 0 ? "> " : "  ") << "Continue\n";
-            std::cout << (selectedIndex == 1 ? "> " : "  ") << "Exit to main menu";
+            cout << "Pause Menu\n";
+            cout << (selectedIndex == 0 ? "> " : "  ") << "Continue\n";
+            cout << (selectedIndex == 1 ? "> " : "  ") << "Exit to main menu";
 
             char input = _getch();
             if (input == 13) // Enter key
@@ -814,7 +892,7 @@ public:
 
     void newGame() {
         system("cls || clear"); // Clear the screen
-        std::cout << "Starting a new game...\n";
+        cout << "Starting a new game...\n";
 
         // Initialize player position at the center of the game board
         int playerRow = gameBoard.getSize() / 2;
@@ -823,7 +901,6 @@ public:
 
         // Display game board with player at the center
         gameBoard.display();
-        std::cout << "\nPlaceholder game logic. Press any key to continue...\n";
         _getch(); // Wait for a key press
     }
 
@@ -834,76 +911,7 @@ public:
 
 int main()
 {
-    Player P;
-    Shop shop;
-    Account account("username", "password");
-    P.gold = 600;
     Game game;
     game.play();
-
-
-    // P.displayPlayerStats();
-    // P.setMainWeapon(3, 4);
-    // P.setMainSword(4, 1);
-    // P.setMainHelmet(1, 3);
-    // P.setMainArmor(2, 1);
-    // P.setMainPants(0, 2);
-    // P.setMainBoots(4, 4);
-    // P.setMainWeapon(2, 0);
-    // P.setMainSword(1, 4);
-    // P.setMainHelmet(3, 1);
-    // P.setMainArmor(2, 3);
-    // P.setMainPants(2, 0);
-    // P.setMainBoots(4, 4);
-
-    // P.displayPlayerStats();
-    // P.moveItem(4, 4, 2, 0);
-    // P.displayPlayerStats();
-    // P.showDetails(2, 0);
-
-    // // This is a test item in shop
-    // shop.grid[0][0] = new Item("Sword of Power", "WEAPON", 200, 100, 50, 0, "An ancient sword", "Epic");
-
-    // P.showGold();
-    // P.buy(0, 0, shop);
-    // P.showDetails(0, 0);
-
-    // P.moveItem(0, 0, 2, 2);
-
-    // P.sell(2, 0, shop);
-
-    // P.removeItem(1, 1);
-
-
-    // P.expandInventory();
-
-
-    // cout << "After sorting:\n";
-    // P.sort(false, 4);
-
-
-    // P.showDetails(5, 5);
-
-    // string inputLogin, inputPassword;
-    // cout << "Enter login: ";
-    // cin >> inputLogin;
-    // cout << "Enter password: ";
-    // cin >> inputPassword;
-
-    // if (account.Validator(inputLogin, inputPassword))
-    // {
-    //     cout << "Login successful!" << endl;
-    //     // Save player and shop information to a text file
-    //     account.saveToFile(P, shop);
-    //     cout << "Data saved to file." << endl;
-    //     // Load player and shop information
-    //     account.loadFromFile(P, shop);
-    // }
-    // else
-    // {
-    //     cout << "Invalid login or password. Exiting..." << endl;
-    // }
-    // P.showDetails(5, 5);
-    // shop.display();
     return 0;
 }

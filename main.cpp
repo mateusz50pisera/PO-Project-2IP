@@ -3,8 +3,6 @@
 #include <vector>
 #include <map>
 #include <algorithm>
-#include <fstream>
-#include <sstream>
 #include <conio.h>
 #include <cstdlib>
 
@@ -31,13 +29,11 @@ public:
     int price;
     string rarity; // Added rarity
 
-    Item(string name, string type, int price, int durability = 100, int attack = 0, int resistance = 0, string details = "No details", string rarity = "Common")
+    Item(string name, string type, int price, int durability = 0, int attack = 0, int resistance = 0, string details = "No details", string rarity = "Common")
         : name{name}, type{type}, price{price}, durability{durability}, details{details}, attack{attack}, resistance{resistance}, rarity{rarity} {}
 
-    // Function to get the color code based on rarity
     string getRarityColor() const
     {
-        // Check if rarity exists in the rarityMap
         if (rarityMap.find(rarity) != rarityMap.end())
         {
             switch (rarityMap.at(rarity)) {
@@ -70,7 +66,7 @@ public:
         {
             for(int j = 0; j < cols; j++)
             {
-                grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 100, 10, 0, 0, "Default item for sale");
+                grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 0, 0, 0, 0, "Default item for sale");
                 count++;
             }
         }
@@ -90,13 +86,11 @@ public:
         }
     }
 
-    int getRows() const
-    {
+    int getRows() const {
         return rows;
     }
 
-    int getCols() const
-    {
+    int getCols() const {
         return cols;
     }
 
@@ -137,7 +131,8 @@ class Equipment
                                 {
                                     swap(grid[k][l], grid[i][j]);
                                 }
-                            } else
+                            }
+                            else
                             {
                                 if (comparator(grid[i][j], grid[k][l]))
                                 {
@@ -160,7 +155,7 @@ public:
         {
             for(int j = 0; j < cols; j++)
             {
-                grid[i][j] = new Item(to_string(count), "DEFAULT", 100, 10, 0, 0, "Default item for sale");
+                grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 0, 0, 0, 0, "Default item for sale");
                 count++;
             }
         }
@@ -178,6 +173,19 @@ public:
         return cols;
     }
 
+    int getPointerRow() const {
+        return pointerRow;
+    }
+
+    int getPointerCol() const {
+        return pointerCol;
+    }
+
+    vector<vector<Item*>>& getGrid()
+    {
+        return grid;
+    }
+
     void setRows(int newRows)
     {
         rows = newRows;
@@ -188,7 +196,8 @@ public:
         cols = newCols;
     }
 
-    void expand() {
+    void expand()
+    {
         if (rows < 10 && cols < 10)
         {
             int newRowSize = rows + 1;
@@ -209,7 +218,7 @@ public:
             // Initialize newly added elements in the last row
             for (int j = 0; j < newColSize; j++)
             {
-                newGrid[newRowSize - 1][j] = new Item("none", "DEFAULT", 100, 0, 0, 0, "No item available");  // Initialize with default item
+                newGrid[newRowSize - 1][j] = new Item("none", "DEFAULT", 0, 0, 0, 0, "No item available");  // Initialize with default item
             }
 
             // Replace the old grid with the new one
@@ -227,7 +236,6 @@ public:
 
     void display()
     {
-        // Clear the screen
         system("cls");
         cout << "Your inventory:\n";
 
@@ -235,11 +243,25 @@ public:
         {
             for(int j = 0; j < cols; j++)
             {
-                if (i == pointerRow && j == pointerCol) {
-                    cout << "> [" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "] <\t\t";
-                } else {
-                    cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "]\t\t";
+                if (i == pointerRow && j == pointerCol)
+                {
+                    cout << "> [" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "] <\t";
                 }
+                else
+                {
+                    cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "\t]\t";
+                }
+            }
+            cout << endl;
+        }
+    }
+    void popInventory()
+    {
+        for(int i = 0; i < rows; i++)
+        {
+            for(int j = 0; j < cols; j++)
+            {
+                cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "\t]\t";
             }
             cout << endl;
         }
@@ -305,29 +327,37 @@ public:
         }
         else
         {
-            cout << "Invalid position or no item found." << endl;
+            cout << "Invalid position or no item found" << endl;
         }
     }
 
     void deleteItem(int row, int col)
     {
-        if (row < rows && col < cols && grid[row][col] != nullptr)
+        if (row < rows && col < cols)
         {
-            // Delete the item from the player's equipment and replace it with a placeholder item
-            cout << "Deleted item " << grid[row][col]->name << endl;
-            delete grid[row][col];
-            grid[row][col] = new Item("none", "DEFAULT", 100, 0, 0, 0, "No item available");
+            // Check if the item is not a deleted item
+            if (grid[row][col] != nullptr)
+            {
+                cout << "Deleted item " << grid[row][col]->name << endl;
+                delete grid[row][col];
+                grid[row][col] = nullptr;
+            }
+            else
+            {
+                cout << "No item found" << endl;
+            }
         }
         else
         {
-            cout << "Invalid position or no item found in player's equipment." << endl;
+            cout << "Invalid position" << endl;
         }
     }
 
     // Sorting methods depending on what user wants
     void sortByName(bool ascending = true)
     {
-        auto comparator = [](const Item* a, const Item* b) {
+        auto comparator = [](const Item* a, const Item* b)
+        {
             return a->name < b->name;
         };
 
@@ -336,7 +366,8 @@ public:
 
     void sortByDurability(bool ascending = true)
     {
-        auto comparator = [](const Item* a, const Item* b) {
+        auto comparator = [](const Item* a, const Item* b)
+        {
             return a->durability < b->durability;
         };
 
@@ -345,7 +376,8 @@ public:
 
     void sortByPrice(bool ascending = true)
     {
-        auto comparator = [](const Item* a, const Item* b) {
+        auto comparator = [](const Item* a, const Item* b)
+        {
             return a->price < b->price;
         };
 
@@ -448,6 +480,11 @@ public:
         eq->display();
     }
 
+    void popEq()
+    {
+        eq->popInventory();
+    }
+
     void moveItem(int row1, int col1, int row2, int col2)
     {
         eq->move(row1, col1, row2, col2);
@@ -462,13 +499,14 @@ public:
         }
         else
         {
-            cout << "Not enough gold." << endl;
+            cout << "Not enough gold" << endl;
         }
     }
 
     void sort(bool asc = false, int option = 1)
     {
-        switch (option) {
+        switch (option)
+        {
         case 1:
             eq->sortByName(asc);
             break;
@@ -489,6 +527,7 @@ public:
 
     void displayPlayerStats()
     {
+        showGold();
         cout << "HP: " << HP << endl;
         cout << (mainHand != nullptr ? mainHand->name : "Fist") << endl;
         cout << (sword != nullptr ? sword->name : "Sword") << endl;
@@ -496,7 +535,7 @@ public:
         cout << (armor != nullptr ? armor->name : "Armor") << endl;
         cout << (pants != nullptr ? pants->name : "Pants") << endl;
         cout << (boots != nullptr ? boots->name : "Boots") << endl;
-        eq->display();
+        eq->popInventory();
     }
 
     void showDetails(int row, int col)
@@ -526,7 +565,7 @@ public:
                 gold -= itemToBuy->price;
                 // Remove the bought item from the shop's inventory
                 delete shop.grid[row][col];
-                shop.grid[row][col] = new Item("none", "DEFAULT", 100, 0, 0, 0, "No item available");
+                shop.grid[row][col] = new Item("none", "DEFAULT", 0, 0, 0, 0, "No item available");
                 // Add the bought item to the player's equipment
                 eq->grid[row][col] = itemToBuy; // Assign the bought item directly to the player's equipment
                 cout << "You bought " << itemToBuy->name << " for $" << itemToBuy->price << endl;
@@ -538,7 +577,7 @@ public:
         }
         else
         {
-            cout << "Invalid position or no item found in shop." << endl;
+            cout << "Invalid position or no item found in shop" << endl;
         }
     }
 
@@ -550,13 +589,13 @@ public:
             int sellPrice = itemToSell->price / 2;
             gold += sellPrice;
             cout << "You sold " << itemToSell->name << " for $" << sellPrice << endl;
-            // Add the sold item back to the shop's inventory
+            // Add the sold item to the shop's inventory
             shop.grid[row][col] = itemToSell;
             eq->grid[row][col] = nullptr; // Remove the item from player's inventory
         }
         else
         {
-            cout << "Invalid position or no item found in player's inventory." << endl;
+            cout << "Invalid position or no item found in player's inventory" << endl;
         }
     }
 
@@ -571,135 +610,8 @@ public:
     }
 };
 
-// Account doesn't work properly yet
-class Account
+class GameBoard
 {
-    string login;
-    string password;
-
-public:
-    Account(string login, string password) : login(login), password(password) {}
-
-    bool Validator(string inputLogin, string inputPassword) const
-    {
-        return (inputLogin == login && inputPassword == password);
-    }
-
-public:
-
-    void saveToFile(Player& player, const Shop& shop) const
-    {
-        ofstream file("save_data.txt");
-
-        // Save player information
-        file << "Player Gold: " << player.gold << endl;
-        file << "Player Equipment:" << endl;
-        for (int i = 0; i < player.getEquipmentGrid().size(); i++)
-        {
-            for (int j = 0; j < player.getEquipmentGrid()[i].size(); j++)
-            {
-                if (player.getEquipmentGrid()[i][j] != nullptr)
-                {
-                    file << "[" << i << "," << j << "] ";
-                    file << "\"" << player.getEquipmentGrid()[i][j]->name << "\" ";
-                    file << "\"" << player.getEquipmentGrid()[i][j]->type << "\" ";
-                    file << player.getEquipmentGrid()[i][j]->price << " ";
-                    file << player.getEquipmentGrid()[i][j]->durability << " ";
-                    file << player.getEquipmentGrid()[i][j]->attack << " ";
-                    file << player.getEquipmentGrid()[i][j]->resistance << " ";
-                    file << "\"" << player.getEquipmentGrid()[i][j]->details << "\" ";
-                    file << "\"" << player.getEquipmentGrid()[i][j]->rarity << "\"" << endl;
-                }
-            }
-        }
-
-        // Save shop information
-        file << "Shop Items:" << endl;
-        for (int i = 0; i < shop.grid.size(); i++)
-        {
-            for (int j = 0; j < shop.grid[i].size(); j++)
-            {
-                if (shop.grid[i][j] != nullptr)
-                {
-                    file << "[" << i << "," << j << "] ";
-                    file << "\"" << shop.grid[i][j]->name << "\" ";
-                    file << "\"" << shop.grid[i][j]->type << "\" ";
-                    file << shop.grid[i][j]->price << " ";
-                    file << shop.grid[i][j]->durability << " ";
-                    file << shop.grid[i][j]->attack << " ";
-                    file << shop.grid[i][j]->resistance << " ";
-                    file << "\"" << shop.grid[i][j]->details << "\" ";
-                    file << "\"" << shop.grid[i][j]->rarity << "\"" << endl;
-                }
-            }
-        }
-
-        file.close();
-    }
-
-    void loadFromFile(Player& player, Shop& shop)
-    {
-        ifstream file("save_data.txt");
-        if (!file.is_open())
-        {
-            cout << "Unable to open save file. Starting a new game." << endl;
-            return;
-        }
-
-        string line;
-        while (getline(file, line))
-        {
-            if (line.find("Player Gold:") != string::npos)
-            {
-                stringstream ss(line);
-                string prefix;
-                int gold;
-                ss >> prefix >> gold;
-                player.gold = gold;
-            }
-            else if (line == "Player Equipment:")
-            {
-                while (getline(file, line) && line != "Shop Items:")
-                {
-                    stringstream ss(line);
-                    string pos, itemName, itemType, itemDetails, itemRarity;
-                    int itemPrice, itemDurability, itemAttack, itemResistance;
-                    ss >> pos >> itemName >> itemType >> itemPrice >> itemDurability >> itemAttack >> itemResistance >> ws; // Read and discard whitespace
-                    getline(ss, itemDetails, '\"'); // Read until the next quote
-                    getline(ss, itemDetails, '\"'); // Read the contents between quotes
-                    getline(ss, itemRarity); // Read the entire line for rarity
-                    // Extract row and column from position string
-                    int row = stoi(pos.substr(1, pos.find(',')));
-                    int col = stoi(pos.substr(pos.find(',') + 1, pos.size() - pos.find(',') - 2));
-                    // Assign item to player's equipment grid
-                    player.getEquipmentGrid()[row][col] = new Item(itemName, itemType, itemPrice, itemDurability, itemAttack, itemResistance, itemDetails, itemRarity);
-                }
-            }
-            else if (line == "Shop Items:")
-            {
-                while (getline(file, line))
-                {
-                    stringstream ss(line);
-                    string pos, itemName, itemType, itemDetails, itemRarity;
-                    int itemPrice, itemDurability, itemAttack, itemResistance;
-                    ss >> pos >> itemName >> itemType >> itemPrice >> itemDurability >> itemAttack >> itemResistance >> ws; // Read and discard whitespace
-                    getline(ss, itemDetails, '\"'); // Read until the next quote
-                    getline(ss, itemDetails, '\"'); // Read the contents between quotes
-                    getline(ss, itemRarity); // Read the entire line for rarity
-                    // Extract row and column from position string
-                    int row = stoi(pos.substr(1, pos.find(',')));
-                    int col = stoi(pos.substr(pos.find(',') + 1, pos.size() - pos.find(',') - 2));
-                    // Assign item to shop's grid
-                    shop.grid[row][col] = new Item(itemName, itemType, itemPrice, itemDurability, itemAttack, itemResistance, itemDetails, itemRarity);
-                }
-            }
-        }
-
-        file.close();
-    }
-};
-
-class GameBoard {
 private:
     int size;
     int playerRow;
@@ -708,16 +620,18 @@ private:
 public:
     GameBoard(int s) : size(s), playerRow(s / 2), playerCol(s / 2) {}
 
-    void updatePlayerPosition(int row, int col) {
-        // Update player position logic
+    void updatePlayerPosition(int row, int col)
+    {
         playerRow = row;
         playerCol = col;
     }
 
-    void display() {
-        // Display game board logic
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+    void display()
+    {
+        for (int i = 0; i < size; i++)
+        {
+            for (int j = 0; j < size; j++)
+            {
                 if (i == playerRow && j == playerCol)
                     cout << "P ";
                 else
@@ -741,44 +655,55 @@ public:
 };
 
 
-class Game {
+class Game
+{
 private:
     Player player;
-    Shop shop;
     GameBoard gameBoard;
     Equipment eq;
 
 public:
-    Game() : player(), shop(), gameBoard(10) {}
+    Game() : player(), gameBoard(15) {}
 
-    void displayMainMenu(int selectedIndex) {
-        system("cls || clear"); // Clear the screen
-        cout << "Main Menu\n";
+    void displayMainMenu(int selectedIndex)
+    {
+        system("cls");
+        cout << "RPG project game\n";
         cout << (selectedIndex == 0 ? "> " : "  ") << "New Game\n";
-        cout << (selectedIndex == 1 ? "> " : "  ") << "Load Save\n";
-        cout << (selectedIndex == 2 ? "> " : "  ") << "Exit\n";
+        cout << (selectedIndex == 1 ? "> " : "  ") << "Exit\n";
     }
 
-    int mainMenu() {
+    int mainMenu()
+    {
         int selectedIndex = 0;
 
-        while (true) {
+        while (true)
+        {
             displayMainMenu(selectedIndex);
 
             char input = _getch(); // Get a single character input without waiting for Enter
 
-            if (input == 13) { // Enter key
-                if (selectedIndex == 2) // If "Exit" is selected
-                    exit(0); // Exit the program
+            if (input == 13) // Enter key
+            {
+                if (selectedIndex == 1)
+                {
+                    exit(0);
+                }
                 else
+                {
                     return selectedIndex; // Return the selected index for other options
+                }
             }
 
-            if (input == 'w' || input == 'W') // W key
-                selectedIndex = (selectedIndex - 1 + 3) % 3;
+            if (input == 'w' || input == 'W')
+            {
+                selectedIndex = (selectedIndex - 1 + 2) % 2;
+            }
 
-            if (input == 's' || input == 'S') // S key
-                selectedIndex = (selectedIndex + 1) % 3;
+            if (input == 's' || input == 'S')
+            {
+                selectedIndex = (selectedIndex + 1) % 2;
+            }
         }
     }
 
@@ -786,56 +711,138 @@ public:
     {
         char userInput;
         bool showInventory = true;
+        bool inItemOptions = false;
+        int selectedItemRow = 0;
+        int selectedItemCol = 0;
+        int selectedOption = 0;
+
 
         while(true)
         {
-            if(showInventory)
+            if (showInventory && !inItemOptions)
             {
                 eq.display();
                 userInput = _getch();
-                if (userInput == 27) // Check if the user pressed the escape key
+                if (userInput == 27) // Escape key
                 {
-                    showInventory = false; // Hide the inventory
+                    showInventory = false;
                     return true;
-                    break; // Exit the loop
+                }
+                else if (userInput == 13)
+                {
+                    if (eq.grid[selectedItemRow][selectedItemCol] != nullptr) // Display options for the selected item
+                    {
+                        inItemOptions = true;
+                    }
                 }
                 else
                 {
                     eq.movePointer(userInput);
+                    selectedItemRow = eq.getPointerRow();
+                    selectedItemCol = eq.getPointerCol();
                 }
             }
-            else
+
+            if (inItemOptions)
             {
-                showInventory = true;
-                break; // Exit the loop
+                system("cls");
+
+                // Handle item options menu here
+                showItemOptions(selectedItemRow, selectedItemCol, selectedOption);
+                userInput = _getch();
+                switch (userInput)
+                {
+                case 'w':
+                case 'W':
+                    selectedOption = (selectedOption - 1 + 3) % 3;
+                    break;
+                case 's':
+                case 'S':
+                    selectedOption = (selectedOption + 1) % 3;
+                    break;
+                case 13: // Enter key
+                    if (selectedOption == 0)
+                    {
+                        player.showDetails(selectedItemRow, selectedItemCol);
+                        cout << "Press any key to continue...";
+                        _getch(); // Wait for any key press
+                        inItemOptions = false;
+                        showInventory = true;
+                    }
+                    if (selectedOption == 1)
+                    {
+                        player.removeItem(selectedItemRow, selectedItemCol);
+                        cout << "Press any key to continue...";
+                        _getch();
+                        inItemOptions = false;
+                        showInventory = true;
+                    }
+                    if (selectedOption == 2)
+                    {
+                        inItemOptions = false;
+                        showInventory = true;
+                    }
+                    break;
+                case 27: // Escape key
+                    inItemOptions = false;
+                    showInventory = true;
+                    break;
+                default:
+                    break;
+                }
+            }
+
+            if (!showInventory && !inItemOptions)
+            {
+                break; // Exit the loop if neither inventory nor item options are being displayed
             }
         }
         return false;
     }
 
-    void runGame() {
+    void showItemOptions(int row, int col, int selectedOption)
+    {
+        // Retrieve the selected item from the inventory
+        Item* selectedItem = eq.grid[row][col];
+
+        // Display options for the selected item
+        cout << "Item Options for " << selectedItem->name << ":" << endl;
+        cout << (selectedOption == 0 ? "> " : "  ") << "1. Show Details" << endl;
+        cout << (selectedOption == 1 ? "> " : "  ") << "2. Remove Item" << endl;
+        cout << (selectedOption == 2 ? "> " : "  ") << "3. Cancel" << endl;
+    }
+
+    void play() {
         int option = mainMenu();
-        system("cls || clear");
+        system("cls");
         gameBoard.display();
 
-        while (true) {
-            if (_kbhit()) {
+        while (true)
+        {
+            if (_kbhit())
+            {
                 char input = _getch();
-                if (input == 'e' || input == 'E') { // If the 'e' key is pressed
-                    if (showInGameInventory()) {
+                if (input == 'e' || input == 'E')
+                {
+                    if (showInGameInventory())
+                    {
                         // Escape key was pressed while inventory was shown
-                        system("cls || clear");
-                        gameBoard.display(); // Display the game board
+                        system("cls");
+                        gameBoard.display();
                     }
                     continue; // Continue to wait for input after displaying inventory
-                } else if (input == 27) { // If the escape key is pressed
+                }
+                else if (input == 27) // Escape key
+                {
                     option = pauseGame(option);
-                    if (option == 0) {
-                        // Continue, so just break out of the pause loop
+                    if (option == 0)
+                    {
                         continue;
-                    } else if (option == 1) {
+                    }
+                    else if (option == 1)
+                    {
                         mainMenu();
-                        break; // Exit the game loop and return to main menu
+                        break;
                     }
                 }
 
@@ -843,7 +850,8 @@ public:
                 int newRow = gameBoard.getPlayerRow();
                 int newCol = gameBoard.getPlayerCol();
 
-                switch (input) {
+                switch (input)
+                {
                 case 'w':
                 case 'W':
                     newRow = (newRow - 1 + gameBoard.getSize()) % gameBoard.getSize();
@@ -865,47 +873,49 @@ public:
                 }
 
                 gameBoard.updatePlayerPosition(newRow, newCol);
-                system("cls || clear");
+                system("cls");
                 gameBoard.display(); // Display the updated game board
             }
         }
     }
 
-    int pauseGame(int selectedIndex) {
-        while (true) {
-            system("cls || clear");
+    int pauseGame(int selectedIndex)
+    {
+        while (true)
+        {
+            system("cls");
             cout << "Pause Menu\n";
             cout << (selectedIndex == 0 ? "> " : "  ") << "Continue\n";
             cout << (selectedIndex == 1 ? "> " : "  ") << "Exit to main menu";
 
             char input = _getch();
             if (input == 13) // Enter key
-                return selectedIndex; // Return the selected index
+            {
+                return selectedIndex;
+            }
 
-            if (input == 'w' || input == 'W') // W key
+            if (input == 'w' || input == 'W')
+            {
                 selectedIndex = (selectedIndex - 1 + 2) % 2;
+            }
 
-            if (input == 's' || input == 'S') // S key
+            if (input == 's' || input == 'S')
+            {
                 selectedIndex = (selectedIndex + 1) % 2;
+            }
         }
     }
 
-    void newGame() {
-        system("cls || clear"); // Clear the screen
-        cout << "Starting a new game...\n";
+    void newGame()
+    {
+        system("cls");
 
-        // Initialize player position at the center of the game board
         int playerRow = gameBoard.getSize() / 2;
         int playerCol = gameBoard.getSize() / 2;
         gameBoard.updatePlayerPosition(playerRow, playerCol);
 
-        // Display game board with player at the center
         gameBoard.display();
-        _getch(); // Wait for a key press
-    }
-
-    void play() {
-        runGame();
+        _getch();
     }
 };
 
@@ -913,5 +923,56 @@ int main()
 {
     Game game;
     game.play();
+
+    /*
+
+    Player P;
+    Shop shop;
+    P.gold = 600;
+
+    P.popEq();
+    shop.display();
+
+    P.displayPlayerStats();
+    P.setMainWeapon(3, 4);
+    P.setMainSword(4, 1);
+    P.setMainHelmet(1, 3);
+    P.setMainArmor(2, 1);
+    P.setMainPants(0, 2);
+    P.setMainBoots(4, 4);
+    P.setMainWeapon(2, 0);
+    P.setMainSword(1, 4);
+    P.setMainHelmet(3, 1);
+    P.setMainArmor(2, 3);
+    P.setMainPants(2, 0);
+    P.setMainBoots(4, 4);
+
+    P.popEq();
+    P.moveItem(4, 4, 2, 0);
+    P.popEq();
+    P.showDetails(2, 0);
+
+    // This is a test item for shop
+    shop.grid[0][0] = new Item("Sword of Power", "WEAPON", 200, 100, 50, 0, "An ancient sword", "Epic");
+
+    P.showGold();
+    P.buy(0, 0, shop);
+    P.showDetails(0, 0);
+
+    P.moveItem(0, 0, 2, 2);
+    shop.display();
+
+    P.sell(2, 0, shop);
+    shop.display();
+
+    P.expandInventory();
+    P.popEq();
+
+    cout << "After sorting:\n";
+    P.sort(false, 4);
+    P.popEq();
+
+    P.showDetails(5, 5);
+    */
     return 0;
 }

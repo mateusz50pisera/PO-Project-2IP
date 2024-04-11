@@ -27,7 +27,7 @@ public:
     int resistance;
     string type;
     int price;
-    string rarity; // Added rarity
+    string rarity;
 
     Item(string name, string type, int price, int durability = 0, int attack = 0, int resistance = 0, string details = "No details", string rarity = "Common")
         : name{name}, type{type}, price{price}, durability{durability}, details{details}, attack{attack}, resistance{resistance}, rarity{rarity} {}
@@ -266,17 +266,76 @@ public:
             cout << endl;
         }
     }
-    void move(int row1, int col1, int row2, int col2)
+    void move(int row1, int col1)
     {
-        if(row1 < rows && col1 < cols && row2 < rows && col2 < cols)
+        pointerRow = 0;
+        pointerCol = 0;
+        if (row1 >= 0 && row1 < rows && col1 >= 0 && col1 < cols)
         {
-            Item* temp = grid[row1][col1];
-            grid[row1][col1] = grid[row2][col2];
-            grid[row2][col2] = temp;
+            char userInput;
+            int row2 = 0; // Initialize the second row
+            int col2 = 0; // Initialize the second column
+
+            // Initialize temp outside the switch statement
+            Item* temp = nullptr;
+
+            // Loop until the user selects the second item to swap
+            while (true)
+            {
+
+                // Display the inventory
+                display();
+
+                // Get user input to navigate the inventory
+                userInput = _getch();
+
+                // Move the pointer according to user input
+                movePointer(userInput);
+                switch (userInput)
+                {
+                case 'w':
+                case 'W':
+                    if (row2 > 0)
+                    {
+                        row2--;
+                    }
+                    break;
+                case 'a':
+                case 'A':
+                    if (col2 > 0)
+                    {
+                        col2--;
+                    }
+                    break;
+                case 's':
+                case 'S':
+                    if (row2 < rows - 1)
+                    {
+                        row2++;
+                    }
+                    break;
+                case 'd':
+                case 'D':
+                    if (col2 < cols - 1)
+                    {
+                        col2++;
+                    }
+                    break;
+                case 13:
+                    temp = grid[row1][col1];
+                    grid[row1][col1] = grid[row2][col2];
+                    grid[row2][col2] = temp;
+                    return;
+                case 27: // Escape key
+                    return;
+                default:
+                    break;
+                }
+            }
         }
         else
         {
-            cout << "Invalid values entered" << endl;
+            cout << "Invalid position entered" << endl;
         }
     }
 
@@ -285,23 +344,32 @@ public:
         switch(direction)
         {
         case 'w':
+        case 'W':
             if(pointerRow > 0)
+            {
                 pointerRow--;
+            }
             break;
         case 'a':
+        case 'A':
             if(pointerCol > 0)
+            {
                 pointerCol--;
+            }
             break;
         case 's':
+        case 'S':
             if(pointerRow < rows - 1)
+            {
                 pointerRow++;
+            }
             break;
         case 'd':
+        case 'D':
             if(pointerCol < cols - 1)
+            {
                 pointerCol++;
-            break;
-        default:
-            cout << "Invalid direction" << endl;
+            }
             break;
         }
     }
@@ -338,9 +406,24 @@ public:
             // Check if the item is not a deleted item
             if (grid[row][col] != nullptr)
             {
-                cout << "Deleted item " << grid[row][col]->name << endl;
-                delete grid[row][col];
-                grid[row][col] = nullptr;
+                char choice;
+                cout << "Do you want to delete item?\nY/N\n";
+                cin >> choice;
+                switch(choice)
+                {
+                case 'Y':
+                case 'y':
+                    delete grid[row][col];
+                    grid[row][col] = nullptr;
+                    cout << "Item deleted" << endl;
+                    break;
+                case 'N':
+                case 'n':
+                    break;
+                default:
+                    cout << "Invalid option" << endl;
+                    break;
+                }
             }
             else
             {
@@ -485,11 +568,6 @@ public:
         eq->popInventory();
     }
 
-    void moveItem(int row1, int col1, int row2, int col2)
-    {
-        eq->move(row1, col1, row2, col2);
-    }
-
     void expandInventory()
     {
         if (gold >= 300)
@@ -558,7 +636,7 @@ public:
                 // Checks if inventory is full of items
                 if (eq->getRows() * eq->getCols() >= 6 * 6)
                 {
-                    cout << "Inventory is full, cannot buy more items." << endl;
+                    cout << "Inventory is full, cannot buy more items" << endl;
                     return;
                 }
 
@@ -597,11 +675,6 @@ public:
         {
             cout << "Invalid position or no item found in player's inventory" << endl;
         }
-    }
-
-    void removeItem(int row, int col)
-    {
-        eq->deleteItem(row, col);
     }
 
     ~Player()
@@ -754,30 +827,45 @@ public:
                 {
                 case 'w':
                 case 'W':
-                    selectedOption = (selectedOption - 1 + 3) % 3;
+                    selectedOption = (selectedOption - 1 + 4) % 4;
                     break;
                 case 's':
                 case 'S':
-                    selectedOption = (selectedOption + 1) % 3;
+                    selectedOption = (selectedOption + 1) % 4;
                     break;
                 case 13: // Enter key
                     if (selectedOption == 0)
                     {
-                        player.showDetails(selectedItemRow, selectedItemCol);
+                        eq.showDetails(selectedItemRow, selectedItemCol);
                         cout << "Press any key to continue...";
                         _getch(); // Wait for any key press
+                        selectedItemRow = eq.getPointerRow();
+                        selectedItemCol = eq.getPointerCol();
                         inItemOptions = false;
                         showInventory = true;
                     }
                     if (selectedOption == 1)
                     {
-                        player.removeItem(selectedItemRow, selectedItemCol);
+                        eq.move(selectedItemRow, selectedItemCol);
+                        cout << "Changed item's position" << endl;
                         cout << "Press any key to continue...";
-                        _getch();
+                        _getch(); // Wait for any key press
+                        selectedItemRow = eq.getPointerRow();
+                        selectedItemCol = eq.getPointerCol();
                         inItemOptions = false;
                         showInventory = true;
                     }
                     if (selectedOption == 2)
+                    {
+                        eq.deleteItem(selectedItemRow, selectedItemCol);
+                        cout << "Press any key to continue...";
+                        _getch();
+                        selectedItemRow = eq.getPointerRow();
+                        selectedItemCol = eq.getPointerCol();
+                        inItemOptions = false;
+                        showInventory = true;
+                    }
+                    if (selectedOption == 3)
                     {
                         inItemOptions = false;
                         showInventory = true;
@@ -808,8 +896,9 @@ public:
         // Display options for the selected item
         cout << "Item Options for " << selectedItem->name << ":" << endl;
         cout << (selectedOption == 0 ? "> " : "  ") << "1. Show Details" << endl;
-        cout << (selectedOption == 1 ? "> " : "  ") << "2. Remove Item" << endl;
-        cout << (selectedOption == 2 ? "> " : "  ") << "3. Cancel" << endl;
+        cout << (selectedOption == 1 ? "> " : "  ") << "2. Move item" << endl;
+        cout << (selectedOption == 2 ? "> " : "  ") << "3. Remove Item" << endl;
+        cout << (selectedOption == 3 ? "> " : "  ") << "4. Cancel" << endl;
     }
 
     void play() {
@@ -837,12 +926,14 @@ public:
                     option = pauseGame(option);
                     if (option == 0)
                     {
+                        system("cls");
+                        gameBoard.display(); // Refresh the screen after returning from pause menu
+                        option = 0;
                         continue;
                     }
                     else if (option == 1)
                     {
-                        mainMenu();
-                        break;
+                        exit(0);
                     }
                 }
 
@@ -886,7 +977,7 @@ public:
             system("cls");
             cout << "Pause Menu\n";
             cout << (selectedIndex == 0 ? "> " : "  ") << "Continue\n";
-            cout << (selectedIndex == 1 ? "> " : "  ") << "Exit to main menu";
+            cout << (selectedIndex == 1 ? "> " : "  ") << "Exit";
 
             char input = _getch();
             if (input == 13) // Enter key
@@ -947,20 +1038,9 @@ int main()
     P.setMainPants(2, 0);
     P.setMainBoots(4, 4);
 
-    P.popEq();
-    P.moveItem(4, 4, 2, 0);
-    P.popEq();
-    P.showDetails(2, 0);
-
-    // This is a test item for shop
-    shop.grid[0][0] = new Item("Sword of Power", "WEAPON", 200, 100, 50, 0, "An ancient sword", "Epic");
-
     P.showGold();
     P.buy(0, 0, shop);
     P.showDetails(0, 0);
-
-    P.moveItem(0, 0, 2, 2);
-    shop.display();
 
     P.sell(2, 0, shop);
     shop.display();

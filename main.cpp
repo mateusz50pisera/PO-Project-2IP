@@ -3,8 +3,37 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <cstdlib>
 
 using namespace std;
+
+#ifdef _WIN32
+#include <conio.h>
+#else
+#include <unistd.h>
+#include <termios.h>
+
+char _getch() {
+    char buf = 0;
+    struct termios old = {0};
+    fflush(stdout);
+    if(tcgetattr(0, &old) < 0)
+        perror("tcsetattr()");
+    old.c_lflag &= ~ICANON;
+    old.c_lflag &= ~ECHO;
+    old.c_cc[VMIN] = 1;
+    old.c_cc[VTIME] = 0;
+    if(tcsetattr(0, TCSANOW, &old) < 0)
+        perror("tcsetattr ICANON");
+    if(read(0, &buf, 1) < 0)
+        perror ("read()");
+    old.c_lflag |= ICANON;
+    old.c_lflag |= ECHO;
+    if(tcsetattr(0, TCSADRAIN, &old) < 0)
+        perror ("tcsetattr ~ICANON");
+    return buf;
+}
+#endif
 
 map<string, int> rarityMap = {
     {"Common", 1},
@@ -25,19 +54,28 @@ public:
     int resistance;
     string type;
     int price;
-    string rarity; // Added rarity
+    string rarity;
 
-    Item(string name, string type, int price, int durability = 100, int attack = 0, int resistance = 0, string details = "No details", string rarity = "Common")
+    Item(string name, string type, int price, int durability = 0, int attack = 0, int resistance = 0, string details = "No details", string rarity = "Common")
         : name{name}, type{type}, price{price}, durability{durability}, details{details}, attack{attack}, resistance{resistance}, rarity{rarity} {}
 
-    // Function to get the color code based on rarity
-    string getRarityColor() const {
-        switch (rarityMap.at(rarity)) {
-        case 2: return "\033[32m"; // Green
-        case 3: return "\033[34m"; // Blue
-        case 4: return "\033[35m"; // Purple
-        case 5: return "\033[33m"; // Yellow
-        default: return ""; // No color for Common
+    string getRarityColor() const
+    {
+        if (rarityMap.find(rarity) != rarityMap.end())
+        {
+            switch (rarityMap.at(rarity)) {
+            case 2: return "\033[32m"; // Green
+            case 3: return "\033[34m"; // Blue
+            case 4: return "\033[35m"; // Purple
+            case 5: return "\033[33m"; // Yellow
+            default: return ""; // No color for Common
+            }
+        }
+        else
+        {
+            // Handle case where rarity is not found in rarityMap
+            cout << "Rarity '" << rarity << "' not found in rarityMap." << endl;
+            return ""; // Return empty string or default color
         }
     }
 };
@@ -55,7 +93,7 @@ public:
         {
             for(int j = 0; j < cols; j++)
             {
-                grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 100, 10, 0, 0, "Default item for sale");
+                grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 0, 0, 0, 0, "Default item for sale");
                 count++;
             }
         }
@@ -75,13 +113,11 @@ public:
         }
     }
 
-    int getRows() const
-    {
+    int getRows() const {
         return rows;
     }
 
-    int getCols() const
-    {
+    int getCols() const {
         return cols;
     }
 
@@ -101,16 +137,18 @@ class Equipment
 {
     int rows;
     int cols;
+    int pointerRow;
+    int pointerCol;
     // Helper function to make sorting items easier
-    void sortItems(std::function<bool(const Item*, const Item*)> comparator, bool ascending)
+    void sortItems(function<bool(const Item*, const Item*)> comparator, bool ascending)
     {
-        for (int i = 0; i < rows; ++i)
+        for (int i = 0; i < rows; i++)
         {
-            for (int j = 0; j < cols; ++j)
+            for (int j = 0; j < cols; j++)
             {
-                for (int k = 0; k < rows; ++k)
+                for (int k = 0; k < rows; k++)
                 {
-                    for (int l = 0; l < cols; ++l)
+                    for (int l = 0; l < cols; l++)
                     {
                         if (grid[i][j] != nullptr && grid[k][l] != nullptr)
                         {
@@ -118,13 +156,14 @@ class Equipment
                             {
                                 if (comparator(grid[k][l], grid[i][j]))
                                 {
-                                    std::swap(grid[k][l], grid[i][j]);
+                                    swap(grid[k][l], grid[i][j]);
                                 }
-                            } else
+                            }
+                            else
                             {
                                 if (comparator(grid[i][j], grid[k][l]))
                                 {
-                                    std::swap(grid[k][l], grid[i][j]);
+                                    swap(grid[k][l], grid[i][j]);
                                 }
                             }
                         }
@@ -143,10 +182,12 @@ public:
         {
             for(int j = 0; j < cols; j++)
             {
-                grid[i][j] = new Item(to_string(count), "DEFAULT", 100, 10, 0, 0, "Default item for sale");
+                grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 0, 0, 0, 0, "Default item for sale");
                 count++;
             }
         }
+        pointerRow = 0;
+        pointerCol = 0;
     }
 
     int getRows() const
@@ -159,6 +200,19 @@ public:
         return cols;
     }
 
+    int getPointerRow() const {
+        return pointerRow;
+    }
+
+    int getPointerCol() const {
+        return pointerCol;
+    }
+
+    vector<vector<Item*>>& getGrid()
+    {
+        return grid;
+    }
+
     void setRows(int newRows)
     {
         rows = newRows;
@@ -169,7 +223,8 @@ public:
         cols = newCols;
     }
 
-    void expand() {
+    void expand()
+    {
         if (rows < 10 && cols < 10)
         {
             int newRowSize = rows + 1;
@@ -190,7 +245,7 @@ public:
             // Initialize newly added elements in the last row
             for (int j = 0; j < newColSize; j++)
             {
-                newGrid[newRowSize - 1][j] = new Item("none", "DEFAULT", 100, 0, 0, 0, "No item available");  // Initialize with default item
+                newGrid[newRowSize - 1][j] = new Item("none", "DEFAULT", 0, 0, 0, 0, "No item available");  // Initialize with default item
             }
 
             // Replace the old grid with the new one
@@ -208,26 +263,141 @@ public:
 
     void display()
     {
+        system("clear");
+        cout << "Your inventory:\n";
+
         for(int i = 0; i < rows; i++)
         {
             for(int j = 0; j < cols; j++)
             {
-                cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "]\t\t";
+                if (i == pointerRow && j == pointerCol)
+                {
+                    cout << "> [" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "] <\t";
+                }
+                else
+                {
+                    cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "\t]\t";
+                }
             }
             cout << endl;
         }
     }
-    void move(int row1, int col1, int row2, int col2)
+    void popInventory()
     {
-        if(row1 < rows && col1 < cols && row2 < rows && col2 < cols)
+        for(int i = 0; i < rows; i++)
         {
-            Item* temp = grid[row1][col1];
-            grid[row1][col1] = grid[row2][col2];
-            grid[row2][col2] = temp;
+            for(int j = 0; j < cols; j++)
+            {
+                cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "\t]\t";
+            }
+            cout << endl;
+        }
+    }
+    void move(int row1, int col1)
+    {
+        pointerRow = 0;
+        pointerCol = 0;
+        if (row1 >= 0 && row1 < rows && col1 >= 0 && col1 < cols)
+        {
+            char userInput;
+            int row2 = 0; // Initialize the second row
+            int col2 = 0; // Initialize the second column
+
+            // Initialize temp outside the switch statement
+            Item* temp = nullptr;
+
+            // Loop until the user selects the second item to swap
+            while (true)
+            {
+
+                // Display the inventory
+                display();
+
+                // Get user input to navigate the inventory
+                userInput = _getch();
+
+                // Move the pointer according to user input
+                movePointer(userInput);
+                switch (userInput)
+                {
+                case 'w':
+                case 'W':
+                    if (row2 > 0)
+                    {
+                        row2--;
+                    }
+                    break;
+                case 'a':
+                case 'A':
+                    if (col2 > 0)
+                    {
+                        col2--;
+                    }
+                    break;
+                case 's':
+                case 'S':
+                    if (row2 < rows - 1)
+                    {
+                        row2++;
+                    }
+                    break;
+                case 'd':
+                case 'D':
+                    if (col2 < cols - 1)
+                    {
+                        col2++;
+                    }
+                    break;
+                case 13:
+                    temp = grid[row1][col1];
+                    grid[row1][col1] = grid[row2][col2];
+                    grid[row2][col2] = temp;
+                    return;
+                case 27: // Escape key
+                    return;
+                default:
+                    break;
+                }
+            }
         }
         else
         {
-            cout << "Invalid values entered" << endl;
+            cout << "Invalid position entered" << endl;
+        }
+    }
+
+    void movePointer(char direction)
+    {
+        switch(direction)
+        {
+        case 'w':
+        case 'W':
+            if(pointerRow > 0)
+            {
+                pointerRow--;
+            }
+            break;
+        case 'a':
+        case 'A':
+            if(pointerCol > 0)
+            {
+                pointerCol--;
+            }
+            break;
+        case 's':
+        case 'S':
+            if(pointerRow < rows - 1)
+            {
+                pointerRow++;
+            }
+            break;
+        case 'd':
+        case 'D':
+            if(pointerCol < cols - 1)
+            {
+                pointerCol++;
+            }
+            break;
         }
     }
 
@@ -252,29 +422,52 @@ public:
         }
         else
         {
-            cout << "Invalid position or no item found." << endl;
+            cout << "Invalid position or no item found" << endl;
         }
     }
 
     void deleteItem(int row, int col)
     {
-        if (row < rows && col < cols && grid[row][col] != nullptr)
+        if (row < rows && col < cols)
         {
-            // Delete the item from the player's equipment and replace it with a placeholder item
-            cout << "Deleted item " << grid[row][col]->name << endl;
-            delete grid[row][col];
-            grid[row][col] = new Item("none", "DEFAULT", 100, 0, 0, 0, "No item available");
+            // Check if the item is not a deleted item
+            if (grid[row][col] != nullptr)
+            {
+                char choice;
+                cout << "Do you want to delete item?\nY/N\n";
+                cin >> choice;
+                switch(choice)
+                {
+                case 'Y':
+                case 'y':
+                    delete grid[row][col];
+                    grid[row][col] = nullptr;
+                    cout << "Item deleted" << endl;
+                    break;
+                case 'N':
+                case 'n':
+                    break;
+                default:
+                    cout << "Invalid option" << endl;
+                    break;
+                }
+            }
+            else
+            {
+                cout << "No item found" << endl;
+            }
         }
         else
         {
-            cout << "Invalid position or no item found in player's equipment." << endl;
+            cout << "Invalid position" << endl;
         }
     }
 
     // Sorting methods depending on what user wants
     void sortByName(bool ascending = true)
     {
-        auto comparator = [](const Item* a, const Item* b) {
+        auto comparator = [](const Item* a, const Item* b)
+        {
             return a->name < b->name;
         };
 
@@ -283,7 +476,8 @@ public:
 
     void sortByDurability(bool ascending = true)
     {
-        auto comparator = [](const Item* a, const Item* b) {
+        auto comparator = [](const Item* a, const Item* b)
+        {
             return a->durability < b->durability;
         };
 
@@ -292,7 +486,8 @@ public:
 
     void sortByPrice(bool ascending = true)
     {
-        auto comparator = [](const Item* a, const Item* b) {
+        auto comparator = [](const Item* a, const Item* b)
+        {
             return a->price < b->price;
         };
 
@@ -343,50 +538,63 @@ public:
         boots = nullptr;
         eq = new Equipment();
     }
+    vector<vector<Item*>>& getEquipmentGrid()
+    {
+        return eq->grid;
+    }
+
     void setMainWeapon(int i, int j)
     {
         Item* temp = mainHand;
         mainHand = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
+
     void setMainSword(int i, int j)
     {
         Item* temp = sword;
         sword = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
+
     void setMainHelmet(int i, int j)
     {
         Item* temp = helmet;
         helmet = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
+
     void setMainArmor(int i, int j)
     {
         Item* temp = armor;
         armor = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
+
     void setMainPants(int i, int j)
     {
         Item* temp = pants;
         pants = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
+
     void setMainBoots(int i, int j)
     {
         Item* temp = boots;
         boots = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
+
     void showEq()
     {
         eq->display();
     }
-    void moveItem(int row1, int col1, int row2, int col2)
+
+    void popEq()
     {
-        eq->move(row1, col1, row2, col2);
+        eq->popInventory();
     }
+
     void expandInventory()
     {
         if (gold >= 300)
@@ -396,13 +604,14 @@ public:
         }
         else
         {
-            cout << "Not enough gold." << endl;
+            cout << "Not enough gold" << endl;
         }
     }
 
     void sort(bool asc = false, int option = 1)
     {
-        switch (option) {
+        switch (option)
+        {
         case 1:
             eq->sortByName(asc);
             break;
@@ -420,8 +629,10 @@ public:
             break;
         }
     }
+
     void displayPlayerStats()
     {
+        showGold();
         cout << "HP: " << HP << endl;
         cout << (mainHand != nullptr ? mainHand->name : "Fist") << endl;
         cout << (sword != nullptr ? sword->name : "Sword") << endl;
@@ -429,16 +640,19 @@ public:
         cout << (armor != nullptr ? armor->name : "Armor") << endl;
         cout << (pants != nullptr ? pants->name : "Pants") << endl;
         cout << (boots != nullptr ? boots->name : "Boots") << endl;
-        eq->display();
+        eq->popInventory();
     }
+
     void showDetails(int row, int col)
     {
         eq->showDetails(row, col);
     }
+
     void showGold()
     {
         cout << "Your gold: " << gold << endl;
     }
+
     void buy(int row, int col, Shop& shop)
     {
         if (row < shop.getRows() && col < shop.getCols() && shop.grid[row][col] != nullptr)
@@ -449,14 +663,14 @@ public:
                 // Checks if inventory is full of items
                 if (eq->getRows() * eq->getCols() >= 6 * 6)
                 {
-                    cout << "Inventory is full, cannot buy more items." << endl;
+                    cout << "Inventory is full, cannot buy more items" << endl;
                     return;
                 }
 
                 gold -= itemToBuy->price;
                 // Remove the bought item from the shop's inventory
                 delete shop.grid[row][col];
-                shop.grid[row][col] = new Item("none", "DEFAULT", 100, 0, 0, 0, "No item available");
+                shop.grid[row][col] = new Item("none", "DEFAULT", 0, 0, 0, 0, "No item available");
                 // Add the bought item to the player's equipment
                 eq->grid[row][col] = itemToBuy; // Assign the bought item directly to the player's equipment
                 cout << "You bought " << itemToBuy->name << " for $" << itemToBuy->price << endl;
@@ -468,9 +682,10 @@ public:
         }
         else
         {
-            cout << "Invalid position or no item found in shop." << endl;
+            cout << "Invalid position or no item found in shop" << endl;
         }
     }
+
     void sell(int row, int col, Shop& shop)
     {
         if (row < eq->getRows() && col < eq->getCols() && eq->grid[row][col] != nullptr)
@@ -479,31 +694,362 @@ public:
             int sellPrice = itemToSell->price / 2;
             gold += sellPrice;
             cout << "You sold " << itemToSell->name << " for $" << sellPrice << endl;
-            // Add the sold item back to the shop's inventory
+            // Add the sold item to the shop's inventory
             shop.grid[row][col] = itemToSell;
             eq->grid[row][col] = nullptr; // Remove the item from player's inventory
         }
         else
         {
-            cout << "Invalid position or no item found in player's inventory." << endl;
+            cout << "Invalid position or no item found in player's inventory" << endl;
         }
     }
-    void removeItem(int row, int col)
-    {
-        eq->deleteItem(row, col);
-    }
+
     ~Player()
     {
         delete eq;
     }
 };
 
+class GameBoard
+{
+private:
+    int size;
+    int playerRow;
+    int playerCol;
+
+public:
+    GameBoard(int s) : size(s), playerRow(s / 2), playerCol(s / 2) {}
+
+    void updatePlayerPosition(int row, int col)
+    {
+        playerRow = row;
+        playerCol = col;
+    }
+
+    void display()
+    {
+        for (int i = 0; i < size; i++)
+        {
+            for (int j = 0; j < size; j++)
+            {
+                if (i == playerRow && j == playerCol)
+                    cout << "P ";
+                else
+                    cout << ". ";
+            }
+            cout << endl;
+        }
+    }
+
+    int getSize() const {
+        return size;
+    }
+
+    int getPlayerRow() const {
+        return playerRow;
+    }
+
+    int getPlayerCol() const {
+        return playerCol;
+    }
+};
+
+
+class Game
+{
+private:
+    Player player;
+    GameBoard gameBoard;
+    Equipment eq;
+
+public:
+    Game() : player(), gameBoard(15) {}
+
+    void displayMainMenu(int selectedIndex)
+    {
+        system("clear");
+        cout << "RPG project game\n";
+        cout << (selectedIndex == 0 ? "> " : "  ") << "New Game\n";
+        cout << (selectedIndex == 1 ? "> " : "  ") << "Exit\n";
+    }
+
+    int mainMenu()
+    {
+        int selectedIndex = 0;
+
+        while (true)
+        {
+            displayMainMenu(selectedIndex);
+
+            char input = _getch(); // Get a single character input without waiting for Enter
+
+            if (input == 13) // Enter key
+            {
+                if (selectedIndex == 1)
+                {
+                    exit(0);
+                }
+                else
+                {
+                    return selectedIndex; // Return the selected index for other options
+                }
+            }
+
+            if (input == 'w' || input == 'W')
+            {
+                selectedIndex = (selectedIndex - 1 + 2) % 2;
+            }
+
+            if (input == 's' || input == 'S')
+            {
+                selectedIndex = (selectedIndex + 1) % 2;
+            }
+        }
+    }
+
+    bool showInGameInventory()
+    {
+        char userInput;
+        bool showInventory = true;
+        bool inItemOptions = false;
+        int selectedItemRow = 0;
+        int selectedItemCol = 0;
+        int selectedOption = 0;
+
+
+        while(true)
+        {
+            if (showInventory && !inItemOptions)
+            {
+                eq.display();
+                userInput = _getch();
+                if (userInput == 27) // Escape key
+                {
+                    showInventory = false;
+                    return true;
+                }
+                else if (userInput == 13)
+                {
+                    if (eq.grid[selectedItemRow][selectedItemCol] != nullptr) // Display options for the selected item
+                    {
+                        inItemOptions = true;
+                    }
+                }
+                else
+                {
+                    eq.movePointer(userInput);
+                    selectedItemRow = eq.getPointerRow();
+                    selectedItemCol = eq.getPointerCol();
+                }
+            }
+
+            if (inItemOptions)
+            {
+                system("clear");
+
+                // Handle item options menu here
+                showItemOptions(selectedItemRow, selectedItemCol, selectedOption);
+                userInput = _getch();
+                switch (userInput)
+                {
+                case 'w':
+                case 'W':
+                    selectedOption = (selectedOption - 1 + 4) % 4;
+                    break;
+                case 's':
+                case 'S':
+                    selectedOption = (selectedOption + 1) % 4;
+                    break;
+                case 13: // Enter key
+                    if (selectedOption == 0)
+                    {
+                        eq.showDetails(selectedItemRow, selectedItemCol);
+                        cout << "Press any key to continue...";
+                        _getch(); // Wait for any key press
+                        selectedItemRow = eq.getPointerRow();
+                        selectedItemCol = eq.getPointerCol();
+                        inItemOptions = false;
+                        showInventory = true;
+                    }
+                    if (selectedOption == 1)
+                    {
+                        eq.move(selectedItemRow, selectedItemCol);
+                        cout << "Changed item's position" << endl;
+                        cout << "Press any key to continue...";
+                        _getch(); // Wait for any key press
+                        selectedItemRow = eq.getPointerRow();
+                        selectedItemCol = eq.getPointerCol();
+                        inItemOptions = false;
+                        showInventory = true;
+                    }
+                    if (selectedOption == 2)
+                    {
+                        eq.deleteItem(selectedItemRow, selectedItemCol);
+                        cout << "Press any key to continue...";
+                        _getch();
+                        selectedItemRow = eq.getPointerRow();
+                        selectedItemCol = eq.getPointerCol();
+                        inItemOptions = false;
+                        showInventory = true;
+                    }
+                    if (selectedOption == 3)
+                    {
+                        inItemOptions = false;
+                        showInventory = true;
+                    }
+                    break;
+                case 27: // Escape key
+                    inItemOptions = false;
+                    showInventory = true;
+                    break;
+                default:
+                    break;
+                }
+            }
+
+            if (!showInventory && !inItemOptions)
+            {
+                break; // Exit the loop if neither inventory nor item options are being displayed
+            }
+        }
+        return false;
+    }
+
+    void showItemOptions(int row, int col, int selectedOption)
+    {
+        // Retrieve the selected item from the inventory
+        Item* selectedItem = eq.grid[row][col];
+
+        // Display options for the selected item
+        cout << "Item Options for " << selectedItem->name << ":" << endl;
+        cout << (selectedOption == 0 ? "> " : "  ") << "1. Show Details" << endl;
+        cout << (selectedOption == 1 ? "> " : "  ") << "2. Move item" << endl;
+        cout << (selectedOption == 2 ? "> " : "  ") << "3. Remove Item" << endl;
+        cout << (selectedOption == 3 ? "> " : "  ") << "4. Cancel" << endl;
+    }
+
+    void play() {
+        int option = mainMenu();
+        system("clear");
+        gameBoard.display();
+
+        while (true)
+        {
+            if (cin.peek() != EOF)
+            {
+                char input;
+                cin >> input;
+                if (input == 'e' || input == 'E')
+                {
+                    if (showInGameInventory())
+                    {
+                        // Escape key was pressed while inventory was shown
+                        system("clear");
+                        gameBoard.display();
+                    }
+                    continue; // Continue to wait for input after displaying inventory
+                }
+                else if (input == 27) // Escape key
+                {
+                    option = pauseGame(option);
+                    if (option == 0)
+                    {
+                        system("clear");
+                        gameBoard.display(); // Refresh the screen after returning from pause menu
+                        option = 0;
+                        continue;
+                    }
+                    else if (option == 1)
+                    {
+                        exit(0);
+                    }
+                }
+
+                // Movement controls
+                int newRow = gameBoard.getPlayerRow();
+                int newCol = gameBoard.getPlayerCol();
+
+                switch (input)
+                {
+                case 'w':
+                case 'W':
+                    newRow = (newRow - 1 + gameBoard.getSize()) % gameBoard.getSize();
+                    break;
+                case 's':
+                case 'S':
+                    newRow = (newRow + 1) % gameBoard.getSize();
+                    break;
+                case 'a':
+                case 'A':
+                    newCol = (newCol - 1 + gameBoard.getSize()) % gameBoard.getSize();
+                    break;
+                case 'd':
+                case 'D':
+                    newCol = (newCol + 1) % gameBoard.getSize();
+                    break;
+                default:
+                    break;
+                }
+
+                gameBoard.updatePlayerPosition(newRow, newCol);
+                system("clear");
+                gameBoard.display(); // Display the updated game board
+            }
+        }
+    }
+
+    int pauseGame(int selectedIndex)
+    {
+        while (true)
+        {
+            system("clear");
+            cout << "Pause Menu\n";
+            cout << (selectedIndex == 0 ? "> " : "  ") << "Continue\n";
+            cout << (selectedIndex == 1 ? "> " : "  ") << "Exit";
+
+            char input = _getch();
+            if (input == 13) // Enter key
+            {
+                return selectedIndex;
+            }
+
+            if (input == 'w' || input == 'W')
+            {
+                selectedIndex = (selectedIndex - 1 + 2) % 2;
+            }
+
+            if (input == 's' || input == 'S')
+            {
+                selectedIndex = (selectedIndex + 1) % 2;
+            }
+        }
+    }
+
+    void newGame()
+    {
+        system("clear");
+
+        int playerRow = gameBoard.getSize() / 2;
+        int playerCol = gameBoard.getSize() / 2;
+        gameBoard.updatePlayerPosition(playerRow, playerCol);
+
+        gameBoard.display();
+        _getch();
+    }
+};
+
 int main()
 {
+    Game game;
+    game.play();
+
+    /*
+
     Player P;
     Shop shop;
     P.gold = 600;
-    P.showEq();
+
+    P.popEq();
     shop.display();
 
     P.displayPlayerStats();
@@ -520,34 +1066,21 @@ int main()
     P.setMainPants(2, 0);
     P.setMainBoots(4, 4);
 
-    P.displayPlayerStats();
-    P.moveItem(4, 4, 2, 0);
-    P.displayPlayerStats();
-    P.showDetails(2, 0);
-
-    // This is a test item in shop
-    shop.grid[0][0] = new Item("Sword of Power", "WEAPON", 200, 100, 50, 0, "An ancient sword", "Epic");
-
     P.showGold();
     P.buy(0, 0, shop);
     P.showDetails(0, 0);
 
-    P.moveItem(0, 0, 2, 2);
-    shop.display();
-
     P.sell(2, 0, shop);
     shop.display();
 
-    P.removeItem(1, 1);
-    P.showEq();
-
     P.expandInventory();
-    P.showEq();
+    P.popEq();
 
     cout << "After sorting:\n";
     P.sort(false, 4);
-    P.showEq();
+    P.popEq();
 
     P.showDetails(5, 5);
+    */
     return 0;
 }

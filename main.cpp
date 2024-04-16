@@ -196,41 +196,43 @@ public:
         cols = newCols;
     }
 
-    void expand()
+   void expand(Player& player)
+{
+    if (player.gold >= 300 && rows < 10 && cols < 10)
     {
-        if (rows < 10 && cols < 10)
+        int newRowSize = rows + 1;
+        int newColSize = cols + 1;
+        // Create a new grid with expanded size
+        vector<vector<Item*>> newGrid(newRowSize, vector<Item*>(newColSize, nullptr));
+        // Copy existing items to the new grid
+        for (int i = 0; i < rows; i++)
         {
-            int newRowSize = rows + 1;
-            int newColSize = cols + 1;
-            // Create a new grid with expanded size
-            vector<vector<Item*>> newGrid(newRowSize, vector<Item*>(newColSize, nullptr));
-            // Copy existing items to the new grid
-            for (int i = 0; i < rows; i++)
+            for (int j = 0; j < cols; j++)
             {
-                for (int j = 0; j < cols; j++)
-                {
-                    newGrid[i][j] = grid[i][j];
-                }
+                newGrid[i][j] = grid[i][j];
             }
-
-            // Initialize newly added elements in the last row
-            for (int j = 0; j < newColSize; j++)
-            {
-                newGrid[newRowSize - 1][j] = new Item("none", "DEFAULT", 0, 0, 0, 0, "No item available");  // Initialize with default item
-            }
-
-            // Replace the old grid with the new one
-            grid = std::move(newGrid);
-            rows = newRowSize;
-            cols = newColSize;
-
-            cout << "Inventory expanded to " << newRowSize << "x" << newColSize << endl;
         }
-        else
+
+        // Initialize newly added elements in the last row
+        for (int j = 0; j < newColSize; j++)
         {
-            cout << "Cannot expand inventory after 10x10" << endl;
+            newGrid[newRowSize - 1][j] = new Item("none", "DEFAULT", 0, 0, 0, 0, "No item available");  // Initialize with default item
         }
+
+        // Replace the old grid with the new one
+        grid = std::move(newGrid);
+        rows = newRowSize;
+        cols = newColSize;
+
+        cout << "Inventory expanded to " << newRowSize << "x" << newColSize << endl;
+        player.gold -= 300; // Deduct gold for the expansion
     }
+    else
+    {
+        cout << "You don't have enough gold to expand your inventory, or inventory size limit reached." << endl;
+    }
+}
+
 
     void display()
     {

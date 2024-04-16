@@ -827,11 +827,11 @@ public:
                 {
                 case 'w':
                 case 'W':
-                    selectedOption = (selectedOption - 1 + 4) % 4;
+                    selectedOption = (selectedOption - 1 + 4) % 7;
                     break;
                 case 's':
                 case 'S':
-                    selectedOption = (selectedOption + 1) % 4;
+                    selectedOption = (selectedOption + 1) % 7;
                     break;
                 case 13: // Enter key
                     if (selectedOption == 0)
@@ -867,6 +867,9 @@ public:
                     }
                     if (selectedOption == 3)
                     {
+                        eq.expand();
+                        cout << "Press any key to continue...";
+                        _getch();
                         inItemOptions = false;
                         showInventory = true;
                     }
@@ -898,7 +901,8 @@ public:
         cout << (selectedOption == 0 ? "> " : "  ") << "1. Show Details" << endl;
         cout << (selectedOption == 1 ? "> " : "  ") << "2. Move item" << endl;
         cout << (selectedOption == 2 ? "> " : "  ") << "3. Remove Item" << endl;
-        cout << (selectedOption == 3 ? "> " : "  ") << "4. Cancel" << endl;
+        cout << "Options for equipment:" << endl;
+        cout << (selectedOption == 3 ? "> " : "  ") << "4. Expand inventory" << endl;
     }
 
     void play() {
@@ -1043,10 +1047,7 @@ int main()
     P.showDetails(0, 0);
 
     P.sell(2, 0, shop);
-    shop.display();
-
-    P.expandInventory();
-    P.popEq();
+    shop.display()
 
     cout << "After sorting:\n";
     P.sort(false, 4);

@@ -202,10 +202,8 @@ public:
         {
             int newRowSize = rows + 1;
             int newColSize = cols + 1;
-
             // Create a new grid with expanded size
             vector<vector<Item*>> newGrid(newRowSize, vector<Item*>(newColSize, nullptr));
-
             // Copy existing items to the new grid
             for (int i = 0; i < rows; i++)
             {
@@ -558,27 +556,9 @@ public:
         eq->grid[i][j] = temp;
     }
 
-    void showEq()
-    {
-        eq->display();
-    }
-
     void popEq()
     {
         eq->popInventory();
-    }
-
-    void expandInventory()
-    {
-        if (gold >= 300)
-        {
-            eq->expand();
-            gold -= 300;
-        }
-        else
-        {
-            cout << "Not enough gold" << endl;
-        }
     }
 
     void sort(bool asc = false, int option = 1)
@@ -749,6 +729,7 @@ public:
     int mainMenu()
     {
         int selectedIndex = 0;
+        player.gold = 600;
 
         while (true)
         {
@@ -827,11 +808,11 @@ public:
                 {
                 case 'w':
                 case 'W':
-                    selectedOption = (selectedOption - 1 + 4) % 7;
+                    selectedOption = (selectedOption - 1 + 4) % 4;
                     break;
                 case 's':
                 case 'S':
-                    selectedOption = (selectedOption + 1) % 7;
+                    selectedOption = (selectedOption + 1) % 4;
                     break;
                 case 13: // Enter key
                     if (selectedOption == 0)
@@ -867,11 +848,37 @@ public:
                     }
                     if (selectedOption == 3)
                     {
-                        eq.expand();
-                        cout << "Press any key to continue...";
-                        _getch();
-                        inItemOptions = false;
-                        showInventory = true;
+                        if (player.gold >= 300)
+                        {
+                            char choice;
+                            cout << "Do you want to expand inventory?\nY/N\n";
+                            cin >> choice;
+                            switch(choice)
+                            {
+                            case 'Y':
+                            case 'y':
+                                eq.expand();
+                                player.gold -= 300;
+                            case 'N':
+                            case 'n':
+                                break;
+                            default:
+                                cout << "Invalid option" << endl;
+                                break;
+                            }
+                            cout << "Press any key to continue...";
+                            _getch();
+                            inItemOptions = false;
+                            showInventory = true;
+                        }
+                        else
+                        {
+                            cout << "Not enough gold" << endl;
+                            cout << "Press any key to continue...";
+                            _getch();
+                            inItemOptions = false;
+                            showInventory = true;
+                        }
                     }
                     break;
                 case 27: // Escape key
@@ -1042,12 +1049,11 @@ int main()
     P.setMainPants(2, 0);
     P.setMainBoots(4, 4);
 
-    P.showGold();
     P.buy(0, 0, shop);
     P.showDetails(0, 0);
 
     P.sell(2, 0, shop);
-    shop.display()
+    shop.display();
 
     cout << "After sorting:\n";
     P.sort(false, 4);

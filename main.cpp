@@ -585,7 +585,8 @@ public:
 
     void displayPlayerStats()
     {
-        showGold();
+        system("cls");
+        cout << "Your gold: " << gold << endl;
         cout << "HP: " << HP << endl;
         cout << (mainHand != nullptr ? mainHand->name : "Fist") << endl;
         cout << (sword != nullptr ? sword->name : "Sword") << endl;
@@ -594,16 +595,6 @@ public:
         cout << (pants != nullptr ? pants->name : "Pants") << endl;
         cout << (boots != nullptr ? boots->name : "Boots") << endl;
         eq->popInventory();
-    }
-
-    void showDetails(int row, int col)
-    {
-        eq->showDetails(row, col);
-    }
-
-    void showGold()
-    {
-        cout << "Your gold: " << gold << endl;
     }
 
     void buy(int row, int col, Shop& shop)
@@ -808,11 +799,11 @@ public:
                 {
                 case 'w':
                 case 'W':
-                    selectedOption = (selectedOption - 1 + 4) % 4;
+                    selectedOption = (selectedOption - 1 + 5) % 5;
                     break;
                 case 's':
                 case 'S':
-                    selectedOption = (selectedOption + 1) % 4;
+                    selectedOption = (selectedOption + 1) % 5;
                     break;
                 case 13: // Enter key
                     if (selectedOption == 0)
@@ -880,6 +871,16 @@ public:
                             showInventory = true;
                         }
                     }
+                    if (selectedOption == 4)
+                    {
+                        player.displayPlayerStats();
+                        cout << "Press any key to continue...";
+                        _getch();
+                        selectedItemRow = eq.getPointerRow();
+                        selectedItemCol = eq.getPointerCol();
+                        inItemOptions = false;
+                        showInventory = true;
+                    }
                     break;
                 case 27: // Escape key
                     inItemOptions = false;
@@ -910,6 +911,7 @@ public:
         cout << (selectedOption == 2 ? "> " : "  ") << "3. Remove Item" << endl;
         cout << "Options for equipment:" << endl;
         cout << (selectedOption == 3 ? "> " : "  ") << "4. Expand inventory" << endl;
+        cout << (selectedOption == 4 ? "> " : "  ") << "5. Display stats" << endl;
     }
 
     void play() {

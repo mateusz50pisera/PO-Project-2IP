@@ -1,0 +1,44 @@
+
+Here we have arrow movement keys if we'd like to add it.
+
+
+
+
+void Game::play() {
+    char input;
+
+    // Game loop
+    while (true) {
+        // Display game board
+        gameBoard.display();
+
+        // Show in-game inventory
+        showInGameInventory();
+
+        // Prompt user for input
+        input = _getch();
+
+        // Handle arrow key movement
+        switch (input) {
+            case 72: // Up arrow
+                gameBoard.updatePlayerPosition(gameBoard.playerRow - 1, gameBoard.playerCol);
+                break;
+            case 80: // Down arrow
+                gameBoard.updatePlayerPosition(gameBoard.playerRow + 1, gameBoard.playerCol);
+                break;
+            case 75: // Left arrow
+                gameBoard.updatePlayerPosition(gameBoard.playerRow, gameBoard.playerCol - 1);
+                break;
+            case 77: // Right arrow
+                gameBoard.updatePlayerPosition(gameBoard.playerRow, gameBoard.playerCol + 1);
+                break;
+            case 27: // Escape key
+                // Show inventory or pause menu
+                // Handle accordingly
+                break;
+            default:
+                // Handle other key presses
+                break;
+        }
+    }
+}

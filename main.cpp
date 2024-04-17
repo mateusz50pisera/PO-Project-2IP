@@ -814,11 +814,11 @@ public:
                 {
                 case 'w':
                 case 'W':
-                    selectedOption = (selectedOption - 1 + 5) % 5;
+                    selectedOption = (selectedOption - 1 + 6) % 6;
                     break;
                 case 's':
                 case 'S':
-                    selectedOption = (selectedOption + 1) % 5;
+                    selectedOption = (selectedOption + 1) % 6;
                     break;
                 case 13: // Enter key
                     if (selectedOption == 0)
@@ -896,6 +896,12 @@ public:
                         inItemOptions = false;
                         showInventory = true;
                     }
+                    if (selectedOption == 5)
+                    {
+                        int sortBy;
+                        bool asc;
+                        cout << "Do you want to sort ascending?\nY/N\n";
+                    }
                     break;
                 case 27: // Escape key
                     inItemOptions = false;
@@ -927,6 +933,7 @@ public:
         cout << "Options for equipment:" << endl;
         cout << (selectedOption == 3 ? "> " : "  ") << "4. Expand inventory" << endl;
         cout << (selectedOption == 4 ? "> " : "  ") << "5. Display stats" << endl;
+        cout << (selectedOption == 5 ? "> " : "  ") << "6. Sort items" << endl;
     }
 
     void play() {

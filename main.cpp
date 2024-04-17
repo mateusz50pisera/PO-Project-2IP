@@ -196,9 +196,9 @@ public:
         cols = newCols;
     }
 
-   void expand(Player& player)
+   void expand()
 {
-    if (player.gold >= 300 && rows < 10 && cols < 10)
+    if (rows < 10 && cols < 10)
     {
         int newRowSize = rows + 1;
         int newColSize = cols + 1;
@@ -225,7 +225,6 @@ public:
         cols = newColSize;
 
         cout << "Inventory expanded to " << newRowSize << "x" << newColSize << endl;
-        player.gold -= 300; // Deduct gold for the expansion
     }
     else
     {
@@ -722,7 +721,7 @@ public:
     int mainMenu()
     {
         int selectedIndex = 0;
-        player.gold = 600;
+        player.gold = 100;
 
         while (true)
         {

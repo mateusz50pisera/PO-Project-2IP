@@ -1,4 +1,8 @@
 
+We should fix displayPlayerStats() so it will show it.
+
+We should add some styling to our project.
+
 Here we have arrow movement keys if we'd like to add it.
 
 

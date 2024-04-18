@@ -294,6 +294,7 @@ public:
                 {
                 case 'w':
                 case 'W':
+                case 72:
                     if (row2 > 0)
                     {
                         row2--;
@@ -301,6 +302,7 @@ public:
                     break;
                 case 'a':
                 case 'A':
+                case 75:
                     if (col2 > 0)
                     {
                         col2--;
@@ -308,6 +310,7 @@ public:
                     break;
                 case 's':
                 case 'S':
+                case 80:
                     if (row2 < rows - 1)
                     {
                         row2++;
@@ -315,6 +318,7 @@ public:
                     break;
                 case 'd':
                 case 'D':
+                case 77:
                     if (col2 < cols - 1)
                     {
                         col2++;
@@ -599,7 +603,6 @@ public:
         cout << (armor != nullptr ? armor->name : "Armor") << endl;
         cout << (pants != nullptr ? pants->name : "Pants") << endl;
         cout << (boots != nullptr ? boots->name : "Boots") << endl;
-        eq->display();
     }
 
     void buy(int row, int col, Shop& shop)
@@ -895,6 +898,7 @@ public:
                     if (selectedOption == 4)
                     {
                         player.displayPlayerStats();
+                        eq.popInventory();
                         cout << "Press any key to continue...";
                         _getch();
                         selectedItemRow = eq.getPointerRow();
@@ -906,6 +910,7 @@ public:
                     {
                         int sortBy;
                         bool asc;
+                        char choice;
                         cout << "Do you want to sort ascending?\nY/N\n";
                     }
                     break;

@@ -344,6 +344,7 @@ public:
         {
         case 'w':
         case 'W':
+        case 72:
             if(pointerRow > 0)
             {
                 pointerRow--;
@@ -351,6 +352,7 @@ public:
             break;
         case 'a':
         case 'A':
+        case 75:
             if(pointerCol > 0)
             {
                 pointerCol--;
@@ -358,6 +360,7 @@ public:
             break;
         case 's':
         case 'S':
+        case 80:
             if(pointerRow < rows - 1)
             {
                 pointerRow++;
@@ -365,6 +368,7 @@ public:
             break;
         case 'd':
         case 'D':
+        case 77:
             if(pointerCol < cols - 1)
             {
                 pointerCol++;
@@ -755,12 +759,12 @@ public:
                 }
             }
 
-            if (input == 'w' || input == 'W')
+            if (input == 'w' || input == 'W' || input == 72)
             {
                 selectedIndex = (selectedIndex - 1 + 2) % 2;
             }
 
-            if (input == 's' || input == 'S')
+            if (input == 's' || input == 'S' || input == 80)
             {
                 selectedIndex = (selectedIndex + 1) % 2;
             }
@@ -814,10 +818,12 @@ public:
                 {
                 case 'w':
                 case 'W':
+                case 72:
                     selectedOption = (selectedOption - 1 + 6) % 6;
                     break;
                 case 's':
                 case 'S':
+                case 80:
                     selectedOption = (selectedOption + 1) % 6;
                     break;
                 case 13: // Enter key
@@ -980,18 +986,22 @@ public:
                 {
                 case 'w':
                 case 'W':
+                case 72: // Up arrow
                     newRow = (newRow - 1 + gameBoard.getSize()) % gameBoard.getSize();
                     break;
                 case 's':
                 case 'S':
+                case 80: // Down arrow
                     newRow = (newRow + 1) % gameBoard.getSize();
                     break;
                 case 'a':
                 case 'A':
+                case 75: // Left arrow
                     newCol = (newCol - 1 + gameBoard.getSize()) % gameBoard.getSize();
                     break;
                 case 'd':
                 case 'D':
+                case 77: // Right arrow
                     newCol = (newCol + 1) % gameBoard.getSize();
                     break;
                 default:
@@ -1020,12 +1030,12 @@ public:
                 return selectedIndex;
             }
 
-            if (input == 'w' || input == 'W')
+            if (input == 'w' || input == 'W' || input == 72)
             {
                 selectedIndex = (selectedIndex - 1 + 2) % 2;
             }
 
-            if (input == 's' || input == 'S')
+            if (input == 's' || input == 'S' || input == 80)
             {
                 selectedIndex = (selectedIndex + 1) % 2;
             }

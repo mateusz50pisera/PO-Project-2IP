@@ -668,7 +668,6 @@ private:
     int size;
     int playerRow;
     int playerCol;
-
 public:
     GameBoard(int s) : size(s), playerRow(s / 2), playerCol(s / 2) {}
 
@@ -908,10 +907,63 @@ public:
                     }
                     if (selectedOption == 5)
                     {
+                        // Sorting doesn't work yet
+                        system("cls");
                         int sortBy;
                         bool asc;
                         char choice;
                         cout << "Do you want to sort ascending?\nY/N\n";
+                        cin >> choice;
+                        if (choice == 'Y' || choice == 'y')
+                        {
+                            cout << "Pick number to choose by what do you want to sort items?\n1. Name\n2. Durability\n3. Price\n4. Rarity";
+                            cin >> choice;
+                            if (choice == 1)
+                            {
+                                eq.sortByName();
+                            }
+                            if (choice == 2)
+                            {
+                                eq.sortByDurability();
+                            }
+                            if (choice == 3)
+                            {
+                                eq.sortByPrice();
+                            }
+                            if (choice == 4)
+                            {
+                                eq.sortByRarity();
+                            }
+                        }
+                        else if (choice == 'N' || choice == 'n')
+                        {
+                            asc = false;
+                            cout << "Pick number to choose by what do you want to sort items?\n1. Name\n2. Durability\n3. Price\n4. Rarity\n";
+                            cin >> choice;
+                            if (choice == 1)
+                            {
+                                eq.sortByName(asc);
+                                eq.popInventory();
+                            }
+                            if (choice == 2)
+                            {
+                                eq.sortByDurability(asc);
+                            }
+                            if (choice == 3)
+                            {
+                                eq.sortByPrice(asc);
+                            }
+                            if (choice == 4)
+                            {
+                                eq.sortByRarity(asc);
+                            }
+                        }
+                        else
+                        {
+                            cout << "Invalid option" << endl;
+                        }
+                        inItemOptions = false;
+                        showInventory = true;
                     }
                     break;
                 case 27: // Escape key
@@ -1027,7 +1079,7 @@ public:
             system("cls");
             cout << "Pause Menu\n";
             cout << (selectedIndex == 0 ? "> " : "  ") << "Continue\n";
-            cout << (selectedIndex == 1 ? "> " : "  ") << "Exit";
+            cout << (selectedIndex == 1 ? "> " : "  ") << "Exit\n";
 
             char input = _getch();
             if (input == 13) // Enter key
@@ -1089,16 +1141,16 @@ int main()
     P.setMainBoots(4, 4);
 
     P.buy(0, 0, shop);
-    P.showDetails(0, 0);
 
     P.sell(2, 0, shop);
     shop.display();
 
+    P.popEq();
     cout << "After sorting:\n";
     P.sort(false, 4);
     P.popEq();
 
-    P.showDetails(5, 5);
     */
+
     return 0;
 }

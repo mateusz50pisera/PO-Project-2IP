@@ -668,8 +668,10 @@ private:
     int size;
     int playerRow;
     int playerCol;
+    int shopRow;
+    int shopCol;
 public:
-    GameBoard(int s) : size(s), playerRow(s / 2), playerCol(s / 2) {}
+    GameBoard(int s) : size(s), playerRow(s / 2), playerCol(s / 2), shopRow(rand() % s), shopCol(rand() % s) {}
 
     void updatePlayerPosition(int row, int col)
     {
@@ -693,6 +695,8 @@ public:
             {
                 if (i == playerRow && j == playerCol)
                     cout << "O ";
+                else if (i == shopRow && j == shopCol)
+                    cout << "$ ";
                 else
                     cout << ". ";
             }
@@ -717,6 +721,14 @@ public:
     int getPlayerCol() const {
         return playerCol;
     }
+
+    int getShopRow() const {
+        return shopRow;
+    }
+
+    int getShopCol() const {
+        return shopCol;
+    }
 };
 
 
@@ -726,6 +738,7 @@ private:
     Player player;
     GameBoard gameBoard;
     Equipment eq;
+    Shop shop;
 
 public:
     Game() : player(), gameBoard(15) {}
@@ -741,7 +754,8 @@ public:
     int mainMenu()
     {
         int selectedIndex = 0;
-        player.gold = 100;
+        // This is for testing
+        player.gold = 300;
 
         while (true)
         {
@@ -1035,9 +1049,19 @@ public:
                     }
                 }
 
+                // Adding shop logic to game
+                int shopRow = gameBoard.getShopRow();
+                int shopCol = gameBoard.getShopCol();
+
+
                 // Movement controls
                 int newRow = gameBoard.getPlayerRow();
                 int newCol = gameBoard.getPlayerCol();
+
+                if (newRow == shopRow && newCol == shopCol)
+                {
+                    cout << "Do you want to enter the shop?" << endl;
+                }
 
                 switch (input)
                 {
@@ -1114,6 +1138,7 @@ public:
 
 int main()
 {
+    srand(time(NULL));
     Game game;
     game.play();
 

@@ -29,7 +29,7 @@ public:
     int price;
     string rarity;
 
-    Item(string name, string type, int price, int durability = 0, int attack = 0, int resistance = 0, string details = "No details", string rarity = "Common")
+    Item(string name, string type, int price, int durability = 0, int attack = 0, int resistance = 0, string details = "This is an item description example", string rarity = "Common")
         : name{name}, type{type}, price{price}, durability{durability}, details{details}, attack{attack}, resistance{resistance}, rarity{rarity} {}
 
     string getRarityColor() const
@@ -60,35 +60,105 @@ class Shop
     int pointerRow;
     int pointerCol;
 public:
-    vector<vector<Item*>> grid;
-    Shop(int rows = 5, int cols = 5) : rows{rows}, cols{cols}, grid(rows, vector<Item*>(cols))
+    vector<vector<Item *>> grid;
+    Shop(int rows = 5, int cols = 5) : rows{rows}, cols{cols}, grid(rows, vector<Item *>(cols))
     {
+        vector<Item> items = {
+            Item("Sword", "WEAPON", 40, 100, 20, 0, "A powerful sword", "Rare"),
+            Item("Axe", "WEAPON", 35, 90, 25, 0, "A sharp axe", "Common"),
+            Item("Dagger", "WEAPON", 25, 80, 15, 0, "A small dagger", "Common"),
+            Item("Bow", "WEAPON", 30, 80, 30, 0, "A sturdy bow", "Uncommon"),
+            Item("Mace", "WEAPON", 45, 95, 22, 0, "A heavy mace", "Rare"),
+            Item("Staff", "WEAPON", 35, 85, 28, 0, "A magical staff", "Uncommon"),
+            Item("Helmet", "HELMET", 20, 80, 0, 15, "A sturdy helmet", "Common"),
+            Item("Chainmail", "CHESTPLATE", 50, 120, 0, 25, "Durable chainmail", "Rare"),
+            Item("Plate Armor", "CHESTPLATE", 60, 150, 0, 30, "Heavy plate armor", "Rare"),
+            Item("Leather Armor", "CHESTPLATE", 40, 100, 0, 20, "Light leather armor", "Common"),
+            Item("Legguards", "LEGGINS", 25, 70, 0, 10, "Sturdy legguards", "Common"),
+            Item("Iron Boots", "BOOTS", 30, 75, 0, 12, "Solid iron boots", "Uncommon"),
+            Item("Leather Boots", "BOOTS", 20, 60, 0, 8, "Light leather boots", "Common"),
+            Item("Healing Potion", "SUPPORT", 15, 0, 0, 0, "Restores health", "Common"),
+            Item("Mana Potion", "SUPPORT", 20, 0, 0, 0, "Restores mana", "Uncommon"),
+            Item("Speed Potion", "SUPPORT", 25, 0, 0, 0, "Increases speed", "Rare"),
+            Item("Strength Potion", "SUPPORT", 30, 0, 0, 0, "Increases strength", "Rare"),
+            Item("Fire Scroll", "SUPPORT", 35, 0, 0, 0, "Casts fire spell", "Rare"),
+            Item("Ice Scroll", "SUPPORT", 35, 0, 0, 0, "Casts ice spell", "Rare"),
+            Item("Lightning Scroll", "SUPPORT", 35, 0, 0, 0, "Casts lightning spell", "Rare"),
+            Item("Healing Scroll", "SUPPORT", 30, 0, 0, 0, "Casts healing spell", "Rare"),
+            Item("Revive Scroll", "SUPPORT", 40, 0, 0, 0, "Revives fallen ally", "Epic"),
+            Item("Summoning Scroll", "SUPPORT", 45, 0, 0, 0, "Summons a creature", "Epic"),
+        };
+
         int count = 0;
-        for(int i = 0; i < rows; i++)
+        for (int i = 0; i < rows; i++)
         {
-            for(int j = 0; j < cols; j++)
+            for (int j = 0; j < cols; j++)
             {
-                grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 0, 0, 0, 0, "Default item for sale");
+                // Use the items vector to populate the shop grid
+                if (count < items.size())
+                {
+                    grid[i][j] = new Item(items[count]);
+                }
+                else
+                {
+                    // If items vector is smaller than grid size, fill with default item
+                    grid[i][j] = nullptr;
+                }
                 count++;
             }
         }
     }
 
-    void display() {
+    void display()
+    {
         system("cls");
         cout << "Shop inventory:\n";
 
-        for(int i = 0; i < rows; i++)
+        // Calculate the maximum width for each column
+        vector<int> maxColWidth(cols, 0);
+        for (int j = 0; j < cols; j++)
         {
-            for(int j = 0; j < cols; j++)
+            for (int i = 0; i < rows; i++)
+            {
+                if (grid[i][j] != nullptr)
+                {
+                    int nameLength = grid[i][j]->name.length();
+                    if (nameLength > maxColWidth[j])
+                    {
+                        maxColWidth[j] = nameLength;
+                    }
+                }
+            }
+        }
+
+        // Display the shop inventory
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
             {
                 if (i == pointerRow && j == pointerCol)
                 {
-                    cout << "> [" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "] <\t";
+                    cout << "> [" << (grid[i][j] != nullptr ? grid[i][j]->name : "");
                 }
                 else
                 {
-                    cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "\t]\t";
+                    cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "");
+                }
+
+                // Adjust spacing based on the length of the longest item name in the column
+                int spacesToAdd = maxColWidth[j] - (grid[i][j] != nullptr ? grid[i][j]->name.length() : 0);
+                for (int k = 0; k < spacesToAdd + 1; k++) // Add an extra space after the name
+                {
+                    cout << " ";
+                }
+
+                if (i == pointerRow && j == pointerCol)
+                {
+                    cout << "] <\t\t";
+                }
+                else
+                {
+                    cout << "]\t\t";
                 }
             }
             cout << endl;
@@ -150,6 +220,32 @@ public:
         return pointerCol;
     }
 
+    void showItemDetails(int row, int col)
+    {
+        if (row < rows && col < cols && grid[row][col] != nullptr)
+        {
+            Item* item = grid[row][col];
+            cout << "Item Name: " << item->name << endl;
+            cout << "Durability: " << item->durability << endl;
+            cout << "Price: " << item->price << endl;
+            cout << "Details: " << item->details << endl;
+            cout << "Type: " << item->type << endl;
+            if (item->type == "WEAPON")
+            {
+                cout << "Attack: " << item->attack << endl;
+            }
+            else if (item->type == "HELMET" || item->type == "CHESTPLATE" || item->type == "LEGGINS" || item->type == "BOOTS")
+            {
+                cout << "Resistance: " << item->resistance << endl;
+            }
+            cout << "Rarity: " << item->getRarityColor() << item->rarity << "\t\033[0m" << endl;
+        }
+        else
+        {
+            cout << "No item found" << endl;
+        }
+    }
+
     ~Shop()
     {
         for(int i = 0; i < rows; i++)
@@ -206,13 +302,11 @@ public:
     vector<vector<Item*>> grid;
     Equipment(int rows = 5, int cols = 5) : rows(rows), cols(cols), grid(rows, vector<Item*>(cols))
     {
-        int count = 0;
         for(int i = 0; i < rows; i++)
         {
             for(int j = 0; j < cols; j++)
             {
-                grid[i][j] = new Item("item" + to_string(count), "DEFAULT", 0, 0, 0, 0, "Default item for sale");
-                count++;
+                grid[i][j] = new Item("", "DEFAULT", 0, 0, 0, 0, "Default item for sale");
             }
         }
         pointerRow = 0;
@@ -272,7 +366,7 @@ public:
             // Initialize newly added elements in the last row
             for (int j = 0; j < newColSize; j++)
             {
-                newGrid[newRowSize - 1][j] = new Item("none", "DEFAULT", 0, 0, 0, 0, "No item available");  // Initialize with default item
+                newGrid[newRowSize - 1][j] = nullptr;
             }
 
             // Replace the old grid with the new one
@@ -294,17 +388,51 @@ public:
         system("cls");
         cout << "Your inventory:\n";
 
-        for(int i = 0; i < rows; i++)
+        // Calculate the maximum width for each column
+        vector<int> maxColWidth(cols, 0);
+        for (int j = 0; j < cols; j++)
         {
-            for(int j = 0; j < cols; j++)
+            for (int i = 0; i < rows; i++)
+            {
+                if (grid[i][j] != nullptr)
+                {
+                    int nameLength = grid[i][j]->name.length();
+                    if (nameLength > maxColWidth[j])
+                    {
+                        maxColWidth[j] = nameLength;
+                    }
+                }
+            }
+        }
+
+        // Display the equipment
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
             {
                 if (i == pointerRow && j == pointerCol)
                 {
-                    cout << "> [" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "] <\t";
+                    cout << "> [" << (grid[i][j] != nullptr ? grid[i][j]->name : "");
                 }
                 else
                 {
-                    cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "\t]\t";
+                    cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "");
+                }
+
+                // Adjust spacing based on the length of the longest item name in the column
+                int spacesToAdd = maxColWidth[j] - (grid[i][j] != nullptr ? grid[i][j]->name.length() : 0);
+                for (int k = 0; k < spacesToAdd + 1; k++) // Add an extra space after the name
+                {
+                    cout << " ";
+                }
+
+                if (i == pointerRow && j == pointerCol)
+                {
+                    cout << "] <\t\t";
+                }
+                else
+                {
+                    cout << "]\t\t";
                 }
             }
             cout << endl;
@@ -312,11 +440,37 @@ public:
     }
     void popInventory()
     {
-        for(int i = 0; i < rows; i++)
+        // Calculate the maximum width for each column
+        vector<int> maxColWidth(cols, 0);
+        for (int j = 0; j < cols; j++)
         {
-            for(int j = 0; j < cols; j++)
+            for (int i = 0; i < rows; i++)
             {
-                cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "none") << "\t]\t";
+                if (grid[i][j] != nullptr)
+                {
+                    int nameLength = grid[i][j]->name.length();
+                    if (nameLength > maxColWidth[j])
+                    {
+                        maxColWidth[j] = nameLength;
+                    }
+                }
+            }
+        }
+
+        // Display the equipment
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+            {
+                cout << "[" << (grid[i][j] != nullptr ? grid[i][j]->name : "");
+
+                // Adjust spacing based on the length of the longest item name in the column
+                int spacesToAdd = maxColWidth[j] - (grid[i][j] != nullptr ? grid[i][j]->name.length() : 0);
+                for (int k = 0; k < spacesToAdd + 1; k++) // Add an extra space after the name
+                {
+                    cout << " ";
+                }
+                cout << "]\t\t";
             }
             cout << endl;
         }
@@ -448,7 +602,7 @@ public:
             {
                 cout << "Attack: " << item->attack << endl;
             }
-            else if (item->type == "ARMOR")
+            else if (item->type == "HELMET" || item->type == "CHESTPLATE" || item->type == "LEGGINS" || item->type == "BOOTS")
             {
                 cout << "Resistance: " << item->resistance << endl;
             }
@@ -551,12 +705,12 @@ public:
 
 class Player
 {
-    int gold;
+    int gold = 1000;
     int HP;
     Item* mainHand;
     Item* sword;
     Item* helmet;
-    Item* armor;
+    Item* ARMOR;
     Item* pants;
     Item* boots;
     Equipment* eq;
@@ -567,7 +721,7 @@ public:
         mainHand = nullptr;
         sword = nullptr;
         helmet = nullptr;
-        armor = nullptr;
+        ARMOR = nullptr;
         pants = nullptr;
         boots = nullptr;
         eq = new Equipment();
@@ -577,7 +731,7 @@ public:
         return eq->grid;
     }
 
-    void setMainWeapon(int i, int j)
+    void setMainWEAPON(int i, int j)
     {
         Item* temp = mainHand;
         mainHand = eq->grid[i][j];
@@ -608,10 +762,10 @@ public:
         eq->grid[i][j] = temp;
     }
 
-    void setMainArmor(int i, int j)
+    void setMainARMOR(int i, int j)
     {
-        Item* temp = armor;
-        armor = eq->grid[i][j];
+        Item* temp = ARMOR;
+        ARMOR = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
 
@@ -664,7 +818,7 @@ public:
         cout << (mainHand != nullptr ? mainHand->name : "Fist") << endl;
         cout << (sword != nullptr ? sword->name : "Sword") << endl;
         cout << (helmet != nullptr ? helmet->name : "Helmet") << endl;
-        cout << (armor != nullptr ? armor->name : "Armor") << endl;
+        cout << (ARMOR != nullptr ? ARMOR->name : "ARMOR") << endl;
         cout << (pants != nullptr ? pants->name : "Pants") << endl;
         cout << (boots != nullptr ? boots->name : "Boots") << endl;
     }
@@ -683,8 +837,8 @@ public:
                     cout << "Inventory is full, cannot buy more items" << endl;
                     return;
                 }
-
-                cout << "Do you want to buy " << itemToBuy->name << "for " << itemToBuy->price << "$? \nY/N\n";
+                shop.showItemDetails(row, col);
+                cout << "Do you want to buy " << itemToBuy->name << " for " << itemToBuy->price << "$? \nY/N\n";
                 cin >> choice;
                 switch(choice)
                 {
@@ -693,7 +847,7 @@ public:
                     gold -= itemToBuy->price;
                     // Remove the bought item from the shop's inventory
                     delete shop.grid[row][col];
-                    shop.grid[row][col] = new Item("none", "DEFAULT", 0, 0, 0, 0, "No item available");
+                    shop.grid[row][col] = nullptr;
                     // Add the bought item to the player's equipment
                     eq->grid[row][col] = itemToBuy; // Assign the bought item directly to the player's equipment
                     cout << "You bought " << itemToBuy->name << " for $" << itemToBuy->price << endl;
@@ -1382,16 +1536,16 @@ int main()
     shop.display();
 
     P.displayPlayerStats();
-    P.setMainWeapon(3, 4);
+    P.setMainWEAPON(3, 4);
     P.setMainSword(4, 1);
     P.setMainHelmet(1, 3);
-    P.setMainArmor(2, 1);
+    P.setMainARMOR(2, 1);
     P.setMainPants(0, 2);
     P.setMainBoots(4, 4);
-    P.setMainWeapon(2, 0);
+    P.setMainWEAPON(2, 0);
     P.setMainSword(1, 4);
     P.setMainHelmet(3, 1);
-    P.setMainArmor(2, 3);
+    P.setMainARMOR(2, 3);
     P.setMainPants(2, 0);
     P.setMainBoots(4, 4);
 

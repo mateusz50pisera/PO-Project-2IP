@@ -306,7 +306,7 @@ public:
         {
             for(int j = 0; j < cols; j++)
             {
-                grid[i][j] = new Item("", "DEFAULT", 0, 0, 0, 0, "Default item for sale");
+                grid[i][j] = nullptr;
             }
         }
         pointerRow = 0;
@@ -825,6 +825,7 @@ public:
 
     void buy(int row, int col, Shop& shop)
     {
+        Item* newItem;
         if (row < shop.getRows() && col < shop.getCols() && shop.grid[row][col] != nullptr)
         {
             char choice;
@@ -845,12 +846,26 @@ public:
                 case 'Y':
                 case 'y':
                     gold -= itemToBuy->price;
+                    // Create a new item for the player's equipment and copy the data
+                    newItem = new Item(*itemToBuy);
                     // Remove the bought item from the shop's inventory
                     delete shop.grid[row][col];
                     shop.grid[row][col] = nullptr;
-                    // Add the bought item to the player's equipment
-                    eq->grid[row][col] = itemToBuy; // Assign the bought item directly to the player's equipment
-                    cout << "You bought " << itemToBuy->name << " for $" << itemToBuy->price << endl;
+                    // Find an empty slot in the player's equipment to place the new item
+                    for (int i = 0; i < eq->getRows(); i++)
+                    {
+                        for (int j = 0; j < eq->getCols(); j++)
+                        {
+                            if (eq->grid[i][j] == nullptr)
+                            {
+                                eq->grid[i][j] = newItem;
+                                return; // Exit the function after placing the item
+                            }
+                        }
+                    }
+                    // If no empty slot is found, display an error message
+                    cout << "Cannot find an empty slot in the player's equipment" << endl;
+                    delete newItem; // Deallocate memory if no empty slot is found
                     break;
                 case 'N':
                 case 'n':
@@ -870,6 +885,8 @@ public:
             cout << "Invalid position or no item found in shop" << endl;
         }
     }
+
+
 
     void sell(int row, int col, Shop& shop)
     {

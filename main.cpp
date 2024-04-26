@@ -2,7 +2,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <algorithm>
 #include <conio.h>
 #include <cstdlib>
 
@@ -264,40 +263,6 @@ class Equipment
     int cols;
     int pointerRow;
     int pointerCol;
-    // Helper function to make sorting items easier
-    void sortItems(function<bool(const Item*, const Item*)> comparator, bool ascending)
-    {
-        for (int i = 0; i < rows; i++)
-        {
-            for (int j = 0; j < cols; j++)
-            {
-                for (int k = 0; k < rows; k++)
-                {
-                    for (int l = 0; l < cols; l++)
-                    {
-                        if (grid[i][j] != nullptr && grid[k][l] != nullptr)
-                        {
-                            if (ascending)
-                            {
-                                if (comparator(grid[k][l], grid[i][j]))
-                                {
-                                    swap(grid[k][l], grid[i][j]);
-                                }
-                            }
-                            else
-                            {
-                                if (comparator(grid[i][j], grid[k][l]))
-                                {
-                                    swap(grid[k][l], grid[i][j]);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
 public:
     vector<vector<Item*>> grid;
     Equipment(int rows = 5, int cols = 5) : rows(rows), cols(cols), grid(rows, vector<Item*>(cols))
@@ -651,46 +616,6 @@ public:
         }
     }
 
-    // Sorting methods depending on what user wants
-    void sortByName(bool ascending = true)
-    {
-        auto comparator = [](const Item* a, const Item* b)
-        {
-            return a->name < b->name;
-        };
-
-        sortItems(comparator, ascending);
-    }
-
-    void sortByDurability(bool ascending = true)
-    {
-        auto comparator = [](const Item* a, const Item* b)
-        {
-            return a->durability < b->durability;
-        };
-
-        sortItems(comparator, ascending);
-    }
-
-    void sortByPrice(bool ascending = true)
-    {
-        auto comparator = [](const Item* a, const Item* b)
-        {
-            return a->price < b->price;
-        };
-
-        sortItems(comparator, ascending);
-    }
-
-    void sortByRarity(bool ascending = true)
-    {
-        auto comparator = [this](const Item* a, const Item* b) {
-            return rarityMap[a->rarity] < rarityMap[b->rarity];
-        };
-
-        sortItems(comparator, ascending);
-    }
-
     ~Equipment()
     {
         for(int i = 0; i < rows; i++)
@@ -705,7 +630,7 @@ public:
 
 class Player
 {
-    int gold = 1000;
+    int gold;
     int HP;
     Item* weapon;
     Item* support;
@@ -717,6 +642,7 @@ class Player
 public:
     Player()
     {
+        gold = 100;
         HP = 100;
         weapon = nullptr;
         support = nullptr;
@@ -743,9 +669,38 @@ public:
         return eq;
     }
 
-    int getGold()
+    int getAttack() const {
+        return weapon->attack;
+    }
+
+    int getDefense() const {
+        return helmet->durability + chestplate->durability + leggins->durability + boots->durability;
+    }
+
+    void defend(int damage)
     {
+        HP -= damage;
+        if (HP < 0) {
+            HP = 0;
+        }
+    }
+
+    int getGold() const {
         return gold;
+    }
+
+    void setGold(int newGold)
+    {
+        gold = newGold;
+    }
+
+    int getHP() const {
+        return HP;
+    }
+
+    void reduceHP(int damage)
+    {
+        HP -= damage;
     }
 
     void setMainSupport(int i, int j)
@@ -786,28 +741,6 @@ public:
     void popEq()
     {
         eq->popInventory();
-    }
-
-    void sort(bool asc = false, int option = 1)
-    {
-        switch (option)
-        {
-        case 1:
-            eq->sortByName(asc);
-            break;
-        case 2:
-            eq->sortByDurability(asc);
-            break;
-        case 3:
-            eq->sortByPrice(asc);
-            break;
-        case 4:
-            eq->sortByRarity(asc);
-            break;
-        default:
-            cout << "Invalid criteria" << endl;
-            break;
-        }
     }
 
     void displayPlayerStats()
@@ -859,11 +792,10 @@ public:
                             if (eq->grid[i][j] == nullptr)
                             {
                                 eq->grid[i][j] = newItem;
-                                return; // Exit the function after placing the item
+                                return;
                             }
                         }
                     }
-                    // If no empty slot is found, display an error message
                     cout << "Cannot find an empty slot in the player's equipment" << endl;
                     delete newItem; // Deallocate memory if no empty slot is found
                     break;
@@ -912,6 +844,65 @@ public:
     }
 };
 
+class Enemy {
+private:
+    int HP;
+    int level;
+    int attack;
+    int resistance;
+
+public:
+    Enemy() : HP(5), level(1), attack(3), resistance(0) {}
+
+    void attackPlayer(Player& player) {
+        // Randomly choose whether to attack or defend
+        bool isAttacking = rand() % 2 == 0;
+
+        if (isAttacking) {
+            // Calculate damage to player based on enemy attack
+            int damageToPlayer = attack - player.getDefense();
+            if (damageToPlayer < 0)
+                damageToPlayer = 0; // Ensure damage is non-negative
+
+            // Inflict damage on the player
+            player.reduceHP(damageToPlayer);
+        } else {
+            // The enemy defends, decreasing damage received by 90%
+            // This is a simplistic implementation of defense
+            // You can adjust this logic as needed
+            int damageReduction = 90; // 90% damage reduction
+            player.reduceHP((attack * damageReduction) / 100);
+        }
+    }
+
+    void levelUp() {
+        level++;
+        HP += HP * level;
+        attack += level;
+        if (level >= 3)
+        {
+            resistance += 2;
+        }
+    }
+
+    void reduceHP(int damage) {
+        // Reduce enemy's HP by subtracting the damage
+        HP -= damage;
+        if (HP < 0) {
+            HP = 0; // Ensure HP doesn't go below 0
+        }
+    }
+
+    int getHP() const {
+        // Return the enemy's current HP
+        return HP;
+    }
+
+    int getLevel() const {
+        return level;
+    }
+};
+
 class GameBoard
 {
 private:
@@ -920,8 +911,10 @@ private:
     int playerCol;
     int shopRow;
     int shopCol;
+    int enemyRow;
+    int enemyCol;
 public:
-    GameBoard(int s) : size(s), playerRow(s / 2), playerCol(s / 2), shopRow(rand() % s), shopCol(rand() % s) {}
+    GameBoard(int s) : size(s), playerRow(s / 2), playerCol(s / 2), shopRow(rand() % s), shopCol(rand() % s), enemyRow(rand() % s), enemyCol(rand() % s) {}
 
     void updatePlayerPosition(int row, int col)
     {
@@ -945,8 +938,13 @@ public:
             {
                 if (i == playerRow && j == playerCol)
                     cout << "O ";
+
                 else if (i == shopRow && j == shopCol)
                     cout << "$ ";
+
+                else if (i == enemyRow && j == enemyCol)
+                    cout << "E ";
+
                 else
                     cout << ". ";
             }
@@ -978,6 +976,12 @@ public:
 
     int getShopCol() const {
         return shopCol;
+    }
+    int getEnemyRow() const {
+        return enemyRow;
+    }
+    int getEnemyCol() const {
+        return enemyCol;
     }
 };
 
@@ -1356,59 +1360,50 @@ public:
     }
 
     void play() {
+        srand(time(NULL));
         int option = mainMenu();
         system("cls");
         gameBoard.display();
         int selectedIndex = 0;
 
-        while (true)
-        {
-            if (_kbhit())
-            {
+        while (true) {
+            if (_kbhit()) {
                 char input = _getch();
-                if (input == 'e' || input == 'E')
-                {
-                    if (showInGameInventory())
-                    {
+                if (input == 'e' || input == 'E') {
+                    if (showInGameInventory()) {
                         // Escape key was pressed while inventory was shown
                         system("cls");
                         gameBoard.display();
                     }
                     continue; // Continue to wait for input after displaying inventory
-                }
-                else if (input == 27) // Escape key
-                {
+                } else if (input == 27) { // Escape key
                     option = pauseGame(option);
-                    if (option == 0)
-                    {
+                    if (option == 0) {
                         system("cls");
                         gameBoard.display(); // Refresh the screen after returning from pause menu
                         option = 0;
                         continue;
-                    }
-                    else if (option == 1)
-                    {
+                    } else if (option == 1) {
                         exit(0);
                     }
                 }
-
 
                 // Movement controls
                 int newRow = gameBoard.getPlayerRow();
                 int newCol = gameBoard.getPlayerCol();
 
-                // Adding shop logic to game
+                // Adding shop and enemy logic to game
                 int shopRow = gameBoard.getShopRow();
                 int shopCol = gameBoard.getShopCol();
+                int enemyRow = gameBoard.getEnemyRow();
+                int enemyCol = gameBoard.getEnemyCol();
 
-                if ((newRow == shopRow && newCol == shopCol) && input == 13)
-                {
+                if ((newRow == shopRow && newCol == shopCol) && input == 13) {
                     system("cls");
                     cout << "Do you want to enter the shop?\nY/N" << endl;
                     char choice;
                     cin >> choice;
-                    switch(choice)
-                    {
+                    switch(choice) {
                     case 'Y':
                     case 'y':
                         showInGameShop();
@@ -1421,38 +1416,139 @@ public:
                         cout << "Invalid option" << endl;
                         break;
                     }
-                }
+                } else if ((newRow == enemyRow && newCol == enemyCol) && input == 13) {
+                    // Player encounters the enemy
+                    system("cls");
+                    cout << "You have encountered an enemy!" << endl;
+                    cout << "Choose your action:" << endl;
+                    cout << "1. Attack enemy" << endl;
+                    cout << "2. Edit inventory" << endl;
+                    cout << "3. Display player stats" << endl;
+                    cout << "4. Escape the enemy" << endl;
 
-                switch (input)
-                {
-                case 'w':
-                case 'W':
-                case 72: // Up arrow
-                    newRow = (newRow - 1 + gameBoard.getSize()) % gameBoard.getSize();
-                    break;
-                case 's':
-                case 'S':
-                case 80: // Down arrow
-                    newRow = (newRow + 1) % gameBoard.getSize();
-                    break;
-                case 'a':
-                case 'A':
-                case 75: // Left arrow
-                    newCol = (newCol - 1 + gameBoard.getSize()) % gameBoard.getSize();
-                    break;
-                case 'd':
-                case 'D':
-                case 77: // Right arrow
-                    newCol = (newCol + 1) % gameBoard.getSize();
-                    break;
-                default:
-                    break;
-                }
+                    char choice = _getch();
 
-                gameBoard.updatePlayerPosition(newRow, newCol);
-                system("cls");
-                gameBoard.display(); // Display the updated game board
+                    switch (choice) {
+                    case '1':
+                        // Start battle with enemy
+                        // You need to implement this part based on your battle mechanics
+                        // You can call a function to initiate the battle
+                        break;
+                    case '2':
+                        showInGameInventory();
+                        break;
+                    case '3':
+                        player.displayPlayerStats();
+                        player.getEq()->popInventory();
+                        break;
+                    case '4':
+                        // Return to game board
+                        system("cls");
+                        gameBoard.display();
+                        break;
+                    default:
+                        cout << "Invalid option" << endl;
+                        break;
+                    }
+                } else {
+                    switch (input) {
+                    case 'w':
+                    case 'W':
+                    case 72: // Up arrow
+                        newRow = (newRow - 1 + gameBoard.getSize()) % gameBoard.getSize();
+                        break;
+                    case 's':
+                    case 'S':
+                    case 80: // Down arrow
+                        newRow = (newRow + 1) % gameBoard.getSize();
+                        break;
+                    case 'a':
+                    case 'A':
+                    case 75: // Left arrow
+                        newCol = (newCol - 1 + gameBoard.getSize()) % gameBoard.getSize();
+                        break;
+                    case 'd':
+                    case 'D':
+                    case 77: // Right arrow
+                        newCol = (newCol + 1) % gameBoard.getSize();
+                        break;
+                    default:
+                        break;
+                    }
+
+                    gameBoard.updatePlayerPosition(newRow, newCol);
+                    system("cls");
+                    gameBoard.display(); // Display the updated game board
+                }
             }
+        }
+    }
+
+    void fightEnemy(Player& player, Enemy& enemy) {
+        while (true) {
+            // Display battle options for the player
+            cout << "Choose your action:" << endl;
+            cout << "1. Attack" << endl;
+            cout << "2. Defend" << endl;
+
+            char choice;
+            cin >> choice;
+
+            if (choice == '1') {
+                // Player attacks enemy
+                int damageToEnemy = player.getAttack();
+                enemy.reduceHP(damageToEnemy);
+                cout << "You attacked the enemy! Enemy HP: " << enemy.getHP() << endl;
+            } else if (choice == '2') {
+                // Player defends
+                int decreasedDamage = 90;
+                player.defend(decreasedDamage);
+                cout << "You chose to defend." << endl;
+            } else {
+                cout << "Invalid choice. Please choose again." << endl;
+                continue;
+            }
+
+            // Enemy's turn
+            enemy.attackPlayer(player);
+            cout << "Enemy attacked! Player HP: " << player.getHP() << endl;
+
+            // Check if player or enemy is defeated
+            if (player.getHP() <= 0) {
+                gameOver();
+                break;
+            } else if (enemy.getHP() <= 0) {
+                win(player, enemy);
+                break;
+            }
+        }
+    }
+
+    void gameOver() {
+        // Display game over screen
+        cout << "Game Over!" << endl;
+        // You can add more to this, such as score, options to restart, etc.
+        exit(0);
+    }
+
+    void win(Player& player, Enemy& enemy) {
+        // Calculate gold earned by defeating enemy
+        int goldEarned = player.getGold() + (10 * enemy.getLevel());
+        player.setGold(goldEarned);
+
+        cout << "You defeated the enemy and earned " << goldEarned << " gold!" << endl;
+
+        // Ask if player wants to continue fighting
+        cout << "Do you want to continue fighting? (Y/N): ";
+        char choice;
+        cin >> choice;
+
+        if (choice == 'Y' || choice == 'y') {
+            // Player wants to continue fighting
+            // You can implement logic to spawn a new enemy or continue the battle
+        } else {
+            // Player doesn't want to continue fighting
+            // You can handle this as per your game logic, like returning to main menu, etc.
         }
     }
 
@@ -1498,44 +1594,8 @@ public:
 
 int main()
 {
-    srand(time(NULL));
     Game game;
     game.play();
-
-    /*
-
-    Player P;
-    Shop shop;
-    P.gold = 600;
-
-    P.popEq();
-    shop.display();
-
-    P.displayPlayerStats();
-    P.setMainWeapon(3, 4);
-    P.setMainsupport(4, 1);
-    P.setMainHelmet(1, 3);
-    P.setMainChestplate(2, 1);
-    P.setMainLeggins(0, 2);
-    P.setMainBoots(4, 4);
-    P.setMainWeapon(2, 0);
-    P.setMainsupport(1, 4);
-    P.setMainHelmet(3, 1);
-    P.setMainChestplate(2, 3);
-    P.setMainLeggins(2, 0);
-    P.setMainBoots(4, 4);
-
-    P.buy(0, 0, shop);
-
-    P.sell(2, 0, shop);
-    shop.display();
-
-    P.popEq();
-    cout << "After sorting:\n";
-    P.sort(false, 4);
-    P.popEq();
-
-    */
 
     return 0;
 }

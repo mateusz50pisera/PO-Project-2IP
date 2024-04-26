@@ -72,8 +72,8 @@ public:
             Item("Staff", "WEAPON", 35, 85, 28, 0, "A magical staff", "Uncommon"),
             Item("Helmet", "HELMET", 20, 80, 0, 15, "A sturdy helmet", "Common"),
             Item("Chainmail", "CHESTPLATE", 50, 120, 0, 25, "Durable chainmail", "Rare"),
-            Item("Plate Armor", "CHESTPLATE", 60, 150, 0, 30, "Heavy plate armor", "Rare"),
-            Item("Leather Armor", "CHESTPLATE", 40, 100, 0, 20, "Light leather armor", "Common"),
+            Item("Plate chestplate", "CHESTPLATE", 60, 150, 0, 30, "Heavy plate chestplate", "Rare"),
+            Item("Leather chestplate", "CHESTPLATE", 40, 100, 0, 20, "Light leather chestplate", "Common"),
             Item("Legguards", "LEGGINS", 25, 70, 0, 10, "Sturdy legguards", "Common"),
             Item("Iron Boots", "BOOTS", 30, 75, 0, 12, "Solid iron boots", "Uncommon"),
             Item("Leather Boots", "BOOTS", 20, 60, 0, 8, "Light leather boots", "Common"),
@@ -480,8 +480,8 @@ public:
         if (row1 >= 0 && row1 < rows && col1 >= 0 && col1 < cols)
         {
             char userInput;
-            int row2 = 0; // Initialize the second row
-            int col2 = 0; // Initialize the second column
+            int row2 = getPointerRow(); // Initialize the second row
+            int col2 = getPointerCol(); // Initialize the second column
 
             // Initialize temp outside the switch statement
             Item* temp = nullptr;
@@ -707,22 +707,22 @@ class Player
 {
     int gold = 1000;
     int HP;
-    Item* mainHand;
-    Item* sword;
+    Item* weapon;
+    Item* support;
     Item* helmet;
-    Item* ARMOR;
-    Item* pants;
+    Item* chestplate;
+    Item* leggins;
     Item* boots;
     Equipment* eq;
 public:
     Player()
     {
         HP = 100;
-        mainHand = nullptr;
-        sword = nullptr;
+        weapon = nullptr;
+        support = nullptr;
         helmet = nullptr;
-        ARMOR = nullptr;
-        pants = nullptr;
+        chestplate = nullptr;
+        leggins = nullptr;
         boots = nullptr;
         eq = new Equipment();
     }
@@ -731,10 +731,10 @@ public:
         return eq->grid;
     }
 
-    void setMainWEAPON(int i, int j)
+    void setMainWeapon(int i, int j)
     {
-        Item* temp = mainHand;
-        mainHand = eq->grid[i][j];
+        Item* temp = weapon;
+        weapon = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
 
@@ -748,10 +748,10 @@ public:
         return gold;
     }
 
-    void setMainSword(int i, int j)
+    void setMainSupport(int i, int j)
     {
-        Item* temp = sword;
-        sword = eq->grid[i][j];
+        Item* temp = support;
+        support = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
 
@@ -762,17 +762,17 @@ public:
         eq->grid[i][j] = temp;
     }
 
-    void setMainARMOR(int i, int j)
+    void setMainChestplate(int i, int j)
     {
-        Item* temp = ARMOR;
-        ARMOR = eq->grid[i][j];
+        Item* temp = chestplate;
+        chestplate = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
 
-    void setMainPants(int i, int j)
+    void setMainLeggins(int i, int j)
     {
-        Item* temp = pants;
-        pants = eq->grid[i][j];
+        Item* temp = leggins;
+        leggins = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
 
@@ -815,12 +815,12 @@ public:
         system("cls");
         cout << "Your gold: " << gold << endl;
         cout << "HP: " << HP << endl;
-        cout << (mainHand != nullptr ? mainHand->name : "Fist") << endl;
-        cout << (sword != nullptr ? sword->name : "Sword") << endl;
-        cout << (helmet != nullptr ? helmet->name : "Helmet") << endl;
-        cout << (ARMOR != nullptr ? ARMOR->name : "ARMOR") << endl;
-        cout << (pants != nullptr ? pants->name : "Pants") << endl;
-        cout << (boots != nullptr ? boots->name : "Boots") << endl;
+        cout << "Weapon: " << (weapon != nullptr ? weapon->name : "") << endl;
+        cout << "Support: " << (support != nullptr ? support->name : "") << endl;
+        cout << "Helmet: " << (helmet != nullptr ? helmet->name : "") << endl;
+        cout << "Chestplate: " << (chestplate != nullptr ? chestplate->name : "") << endl;
+        cout << "Leggins: " << (leggins != nullptr ? leggins->name : "") << endl;
+        cout << "Boots: " << (boots != nullptr ? boots->name : "") << endl;
     }
 
     void buy(int row, int col, Shop& shop)
@@ -1124,6 +1124,33 @@ public:
                     }
                     if (selectedOption == 3)
                     {
+                        if(player.getEq()->grid[selectedItemRow][selectedItemCol]->type == "WEAPON")
+                            player.setMainWeapon(selectedItemRow, selectedItemCol);
+
+                        else if(player.getEq()->grid[selectedItemRow][selectedItemCol]->type == "SUPPORT")
+                            player.setMainSupport(selectedItemRow, selectedItemCol);
+
+                        else if(player.getEq()->grid[selectedItemRow][selectedItemCol]->type == "HELMET")
+                            player.setMainHelmet(selectedItemRow, selectedItemCol);
+
+                        else if(player.getEq()->grid[selectedItemRow][selectedItemCol]->type == "CHESTPLATE")
+                            player.setMainChestplate(selectedItemRow, selectedItemCol);
+
+                        else if(player.getEq()->grid[selectedItemRow][selectedItemCol]->type == "LEGGINS")
+                            player.setMainLeggins(selectedItemRow, selectedItemCol);
+
+                        else if(player.getEq()->grid[selectedItemRow][selectedItemCol]->type == "BOOTS")
+                            player.setMainBoots(selectedItemRow, selectedItemCol);
+
+                        else
+                        {
+                            cout << "Invalid item type" << endl;
+                        }
+                        inItemOptions = false;
+                        showInventory = true;
+                    }
+                    if (selectedOption == 4)
+                    {
                         if (gold >= 300)
                         {
                             char choice;
@@ -1156,7 +1183,7 @@ public:
                             showInventory = true;
                         }
                     }
-                    if (selectedOption == 4)
+                    if (selectedOption == 5)
                     {
                         player.displayPlayerStats();
                         player.getEq()->popInventory();
@@ -1164,66 +1191,6 @@ public:
                         _getch();
                         selectedItemRow = player.getEq()->getPointerRow();
                         selectedItemCol = player.getEq()->getPointerCol();
-                        inItemOptions = false;
-                        showInventory = true;
-                    }
-                    if (selectedOption == 5)
-                    {
-                        // Sorting doesn't work yet
-                        system("cls");
-                        int sortBy;
-                        bool asc;
-                        char choice;
-                        cout << "Do you want to sort ascending?\nY/N\n";
-                        cin >> choice;
-                        if (choice == 'Y' || choice == 'y')
-                        {
-                            cout << "Pick number to choose by what do you want to sort items?\n1. Name\n2. Durability\n3. Price\n4. Rarity";
-                            cin >> choice;
-                            if (choice == 1)
-                            {
-                                player.getEq()->sortByName();
-                            }
-                            if (choice == 2)
-                            {
-                                player.getEq()->sortByDurability();
-                            }
-                            if (choice == 3)
-                            {
-                                player.getEq()->sortByPrice();
-                            }
-                            if (choice == 4)
-                            {
-                                player.getEq()->sortByRarity();
-                            }
-                        }
-                        else if (choice == 'N' || choice == 'n')
-                        {
-                            asc = false;
-                            cout << "Pick number to choose by what do you want to sort items?\n1. Name\n2. Durability\n3. Price\n4. Rarity\n";
-                            cin >> choice;
-                            if (choice == 1)
-                            {
-                                player.getEq()->sortByName(asc);
-                                player.getEq()->popInventory();
-                            }
-                            if (choice == 2)
-                            {
-                                player.getEq()->sortByDurability(asc);
-                            }
-                            if (choice == 3)
-                            {
-                                player.getEq()->sortByPrice(asc);
-                            }
-                            if (choice == 4)
-                            {
-                                player.getEq()->sortByRarity(asc);
-                            }
-                        }
-                        else
-                        {
-                            cout << "Invalid option" << endl;
-                        }
                         inItemOptions = false;
                         showInventory = true;
                     }
@@ -1255,18 +1222,10 @@ public:
         cout << (selectedOption == 0 ? "> " : "  ") << "1. Show Details" << endl;
         cout << (selectedOption == 1 ? "> " : "  ") << "2. Move item" << endl;
         cout << (selectedOption == 2 ? "> " : "  ") << "3. Remove Item" << endl;
+        cout << (selectedOption == 3 ? "> " : "  ") << "4. Select as main " << selectedItem->type << endl;
         cout << "Options for equipment:" << endl;
-        cout << (selectedOption == 3 ? "> " : "  ") << "4. Expand inventory" << endl;
-        cout << (selectedOption == 4 ? "> " : "  ") << "5. Display stats" << endl;
-        cout << (selectedOption == 5 ? "> " : "  ") << "6. Sort items" << endl;
-    }
-
-    void showShopOptions(int selectedOption)
-    {
-        shop.display();
-        cout << "Shop options:" << endl;
-        cout << (selectedOption == 0 ? "> " : "  ") << "1. Show Details" << endl;
-        cout << (selectedOption == 1 ? "> " : "  ") << "2. Move item" << endl;
+        cout << (selectedOption == 4 ? "> " : "  ") << "5. Expand inventory" << endl;
+        cout << (selectedOption == 5 ? "> " : "  ") << "6. Display stats" << endl;
     }
 
     void showInGameShop()
@@ -1553,17 +1512,17 @@ int main()
     shop.display();
 
     P.displayPlayerStats();
-    P.setMainWEAPON(3, 4);
-    P.setMainSword(4, 1);
+    P.setMainWeapon(3, 4);
+    P.setMainsupport(4, 1);
     P.setMainHelmet(1, 3);
-    P.setMainARMOR(2, 1);
-    P.setMainPants(0, 2);
+    P.setMainChestplate(2, 1);
+    P.setMainLeggins(0, 2);
     P.setMainBoots(4, 4);
-    P.setMainWEAPON(2, 0);
-    P.setMainSword(1, 4);
+    P.setMainWeapon(2, 0);
+    P.setMainsupport(1, 4);
     P.setMainHelmet(3, 1);
-    P.setMainARMOR(2, 3);
-    P.setMainPants(2, 0);
+    P.setMainChestplate(2, 3);
+    P.setMainLeggins(2, 0);
     P.setMainBoots(4, 4);
 
     P.buy(0, 0, shop);

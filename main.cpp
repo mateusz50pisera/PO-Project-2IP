@@ -69,7 +69,7 @@ public:
             Item("Bow", "WEAPON", 30, 80, 30, 0, "A sturdy bow", "Uncommon"),
             Item("Mace", "WEAPON", 45, 95, 22, 0, "A heavy mace", "Rare"),
             Item("Staff", "WEAPON", 35, 85, 28, 0, "A magical staff", "Uncommon"),
-            Item("Helmet", "HELMET", 20, 2, 0, 15, "A sturdy helmet", "Common"),
+            Item("Helmet", "HELMET", 20, 85, 0, 15, "A sturdy helmet", "Common"),
             Item("Chainmail", "CHESTPLATE", 50, 120, 0, 25, "Durable chainmail", "Rare"),
             Item("Plate chestplate", "CHESTPLATE", 60, 150, 0, 30, "Heavy plate chestplate", "Rare"),
             Item("Leather chestplate", "CHESTPLATE", 40, 100, 0, 20, "Light leather chestplate", "Common"),

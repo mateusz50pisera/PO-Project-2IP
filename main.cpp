@@ -737,7 +737,8 @@ public:
 
     void decreaseChestplateDurability(Player& player)
     {
-        if (player.getChestplate() != nullptr) {
+        if (player.getChestplate() != nullptr) 
+        {
             if (player.getChestplate()->durability > 1)
             {
                 player.getChestplate()->durability -= 1;
@@ -767,7 +768,8 @@ public:
 
     void decreaseLegginsDurability(Player& player)
     {
-        if (player.getLeggins() != nullptr) {
+        if (player.getLeggins() != nullptr) 
+        {
             if (player.getLeggins()->durability > 1)
             {
                 player.getLeggins()->durability -= 1;
@@ -797,7 +799,8 @@ public:
 
     void decreaseBootsDurability(Player& player)
     {
-        if (player.getBoots() != nullptr) {
+        if (player.getBoots() != nullptr) 
+        {
             if (player.getBoots()->durability > 1)
             {
                 player.getBoots()->durability -= 1;
@@ -1557,7 +1560,8 @@ public:
                     cout << "Do you want to enter the shop?\nY/N" << endl;
                     char choice;
                     cin >> choice;
-                    switch(choice) {
+                    switch(choice) 
+                    {
                     case 'Y':
                     case 'y':
                         showInGameShop();

@@ -842,46 +842,46 @@ public:
         HP -= actualDamage;
     }
 
-    void setMainWeapon(int i, int j)
+    void setMainWeapon(int row, int col)
     {
         Item* temp = weapon;
-        weapon = eq->grid[i][j];
-        eq->grid[i][j] = temp;
+        weapon = eq->grid[row][col];
+        eq->grid[row][col] = temp;
     }
 
-    void setMainSupport(int i, int j)
+    void setMainSupport(int row, int col)
     {
         Item* temp = support;
-        support = eq->grid[i][j];
-        eq->grid[i][j] = temp;
+        support = eq->grid[row][col];
+        eq->grid[row][col] = temp;
     }
 
-    void setMainHelmet(int i, int j)
+    void setMainHelmet(int row, int col)
     {
         Item* temp = helmet;
-        helmet = eq->grid[i][j];
-        eq->grid[i][j] = temp;
+        helmet = eq->grid[row][col];
+        eq->grid[row][col] = temp;
     }
 
-    void setMainChestplate(int i, int j)
+    void setMainChestplate(int row, int col)
     {
         Item* temp = chestplate;
         chestplate = eq->grid[i][j];
         eq->grid[i][j] = temp;
     }
 
-    void setMainLeggins(int i, int j)
+    void setMainLeggins(int row, int col)
     {
         Item* temp = leggins;
-        leggins = eq->grid[i][j];
-        eq->grid[i][j] = temp;
+        leggins = eq->grid[row][col];
+        eq->grid[row][col] = temp;
     }
 
-    void setMainBoots(int i, int j)
+    void setMainBoots(int row, int col)
     {
         Item* temp = boots;
-        boots = eq->grid[i][j];
-        eq->grid[i][j] = temp;
+        boots = eq->grid[row][col];
+        eq->grid[row][col] = temp;
     }
 
     void popEq()

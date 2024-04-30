@@ -1520,7 +1520,8 @@ public:
                 char input = _getch();
                 if (input == 'e' || input == 'E')
                 {
-                    if (showInGameInventory()) {
+                    if (showInGameInventory()) 
+                    {
                         system("cls");
                         gameBoard.display();
                     }
@@ -1557,7 +1558,8 @@ public:
                     cout << "Do you want to enter the shop?\nY/N" << endl;
                     char choice;
                     cin >> choice;
-                    switch(choice) {
+                    switch(choice) 
+                    {
                     case 'Y':
                     case 'y':
                         showInGameShop();
@@ -1685,7 +1687,8 @@ public:
             cin >> choice;
 
             if (choice == '1') {
-                if (player.getWeapon() == nullptr) {
+                if (player.getWeapon() == nullptr) 
+                {
                     cout << "\nYou don't have a weapon equipped!\nDo you want to escape?\nY/N\n";
                     char escapeChoice;
                     cin >> escapeChoice;

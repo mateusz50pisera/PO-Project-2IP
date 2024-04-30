@@ -657,13 +657,6 @@ public:
         return eq->grid;
     }
 
-    void setMainWeapon(int i, int j)
-    {
-        Item* temp = weapon;
-        weapon = eq->grid[i][j];
-        eq->grid[i][j] = temp;
-    }
-
     Equipment* getEq()
     {
         return eq;
@@ -847,6 +840,13 @@ public:
         actualDamage = max(1, actualDamage);
 
         HP -= actualDamage;
+    }
+
+    void setMainWeapon(int i, int j)
+    {
+        Item* temp = weapon;
+        weapon = eq->grid[i][j];
+        eq->grid[i][j] = temp;
     }
 
     void setMainSupport(int i, int j)
